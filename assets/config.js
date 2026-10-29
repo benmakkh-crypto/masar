@@ -1,0 +1,1 @@
+window.MASAR={APP_URL:"https://script.google.com/macros/s/AKfycbyj3K411jksOm4G41Sfo2_yJlXrXcrTBDj2Syk1tQPTrHbbtkiyv3YQTPJDILdr5TCp9w/exec",NAME:"مسار",TAGLINE:"نظام إدارة المعاملات"};
