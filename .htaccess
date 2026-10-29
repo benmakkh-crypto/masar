@@ -5,13 +5,46 @@ Options -Indexes
   RewriteEngine On
   RewriteCond %{HTTPS} !=on
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+  # ملفات مضغوطة مسبقاً (gzip) لتسريع التحميل
+  RewriteCond %{HTTP:Accept-Encoding} gzip
+  RewriteRule ^$ index.html.gz [L,E=no-gzip:1]
+  RewriteCond %{HTTP:Accept-Encoding} gzip
+  RewriteCond %{REQUEST_FILENAME}.gz -s
+  RewriteRule ^(.+\.(html|js|css|json|webmanifest|svg))$ $1.gz [L,E=no-gzip:1]
+</IfModule>
+<FilesMatch "\.html\.gz$">
+  ForceType text/html
+</FilesMatch>
+<FilesMatch "\.js\.gz$">
+  ForceType application/javascript
+</FilesMatch>
+<FilesMatch "\.css\.gz$">
+  ForceType text/css
+</FilesMatch>
+<FilesMatch "\.json\.gz$">
+  ForceType application/json
+</FilesMatch>
+<FilesMatch "\.webmanifest\.gz$">
+  ForceType application/manifest+json
+</FilesMatch>
+<FilesMatch "\.svg\.gz$">
+  ForceType image/svg+xml
+</FilesMatch>
+<IfModule mod_headers.c>
+  <FilesMatch "\.gz$">
+    Header set Content-Encoding gzip
+    Header append Vary Accept-Encoding
+  </FilesMatch>
+  <FilesMatch "\.html\.gz$">
+    Header set Content-Type "text/html; charset=utf-8"
+  </FilesMatch>
 </IfModule>
 <IfModule mod_mime.c>
   AddType application/manifest+json .webmanifest
   AddType application/javascript .js
 </IfModule>
 <IfModule mod_headers.c>
-  <FilesMatch "(\.html|sw\.js|version\.json|config\.js)$">
+  <FilesMatch "(\.html|\.html\.gz|sw\.js|version\.json|config\.js)$">
     Header set Cache-Control "no-cache, must-revalidate"
   </FilesMatch>
   <FilesMatch "\.(png|jpe?g|webp|svg|ico)$">
