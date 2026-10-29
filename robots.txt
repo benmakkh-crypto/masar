@@ -1,2 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /login.html
+
+Sitemap: https://masarbonyan.online/sitemap.xml
