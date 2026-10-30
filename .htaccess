@@ -5,6 +5,8 @@ Options -Indexes
   RewriteEngine On
   RewriteCond %{HTTPS} !=on
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+  # روابط مختصرة: /app و/login و/portal و/install
+  RewriteRule ^(app|login|portal|install|request)/?$ /$1.html [L,R=301]
   # ملفات مضغوطة مسبقاً (gzip) لتسريع التحميل
   RewriteCond %{HTTP:Accept-Encoding} gzip
   RewriteRule ^$ index.html.gz [L,E=no-gzip:1]
