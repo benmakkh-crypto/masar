@@ -1,17 +1,27 @@
 <?php
-/* مسار — إرسال البريد من استضافة هوستنجر بطلبات موقّعة من خادم مسار (Ed25519)، بلا كلمات مرور */
+/* مسار — إرسال البريد من استضافة هوستنجر بطلبات موقّعة من خادم مسار (RSA-SHA256)، بلا كلمات مرور */
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
-const MASAR_PUB = 'WvZpHbxBLknGaR6hqPv/RMM+T6Ly9SvtPhBRIzWnLkI=';
+const MASAR_PUB = <<<'PEM'
+-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxuemdBMcGPQ0GOf0Lmow
+c67vvAjfhp/f8drWe9UJM/D3Y0qYCd4iswqed/4jbh47VD3YTwsFRV9SI4p+TiAG
+3eMfxQaie4UDhXk6Ig5Fjiyrpk1C5n6Ul9rlTs4MElFwy+qvGDPjUBg2+uq7/XEI
+snSrTEuXNvEW1Big01Z6xt58V2NlQfWa+ISVADMFrjOCZeWmzMDbz7gzvK93q2OQ
+E8p08hMThEh5TjfRZp0cl1gTOzVOXqHZHfVp7jMAterSdVM7MDmRCFPiDRfP6+Vf
+fLsP/TD4viIRF36s+EEtiyzzWw2+3ysaCtYVWXKE11eQL3vdLlf6EyLTfj7ewx2J
+jQIDAQAB
+-----END PUBLIC KEY-----
+PEM;
 const MASAR_FROM = 'masar@masarbonyan.online';
 function out($code, $a) { http_response_code($code); echo json_encode($a, JSON_UNESCAPED_UNICODE); exit; }
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') out(405, ['ok' => false]);
-if (!function_exists('sodium_crypto_sign_verify_detached')) out(500, ['ok' => false, 'error' => 'sodium']);
+if (!function_exists('openssl_verify')) out(500, ['ok' => false, 'error' => 'openssl']);
 $in = json_decode(file_get_contents('php://input'), true);
 if (!is_array($in) || !isset($in['p'], $in['s'])) out(400, ['ok' => false, 'error' => 'bad']);
-$sig = base64_decode($in['s'], true); $pub = base64_decode(MASAR_PUB, true);
-if ($sig === false || strlen($sig) !== 64 || $pub === false || strlen($pub) !== 32) out(400, ['ok' => false, 'error' => 'sig']);
-if (!sodium_crypto_sign_verify_detached($sig, $in['p'], $pub)) out(403, ['ok' => false, 'error' => 'verify']);
+$sig = base64_decode($in['s'], true);
+if ($sig === false || strlen($sig) < 128) out(400, ['ok' => false, 'error' => 'sig']);
+if (openssl_verify($in['p'], $sig, MASAR_PUB, OPENSSL_ALGO_SHA256) !== 1) out(403, ['ok' => false, 'error' => 'verify']);
 $m = json_decode($in['p'], true);
 if (!is_array($m) || abs(time() - intval($m['ts'] ?? 0)) > 300) out(403, ['ok' => false, 'error' => 'expired']);
 // منع إعادة استخدام الطلب نفسه
