@@ -7,6 +7,9 @@ Options -Indexes
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
   # روابط مختصرة: /app و/login و/portal و/install
   RewriteRule ^(app|login|portal|install|request)/?$ /$1.html [L,R=301]
+  RewriteRule ^(att|hadir)/?$ /app.html#attendance [NE,L,R=302]
+  RewriteRule ^(bus|nql)/?$ /app.html#transport [NE,L,R=302]
+  RewriteRule ^(prog|track)/?$ /app.html#progress [NE,L,R=302]
   # ملفات مضغوطة مسبقاً (gzip) لتسريع التحميل
   RewriteCond %{HTTP:Accept-Encoding} gzip
   RewriteRule ^$ index.html.gz [L,E=no-gzip:1]
