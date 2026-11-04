@@ -1,6 +1,31 @@
 # مسار — إعدادات الاستضافة (Hostinger / Apache)
 DirectoryIndex index.html
 Options -Indexes
+ServerSignature Off
+# حماية: منع الوصول للملفات المخفية والحساسة وأي سكربت غير مسار البريد
+<FilesMatch "^\.|\.(env|ini|log|sh|sql|bak|old|orig|swp|dist|lock|ya?ml|md|gs|py|pem|key)$">
+  Require all denied
+</FilesMatch>
+<FilesMatch "\.(php|phtml|phar|cgi|pl)$">
+  Require all denied
+</FilesMatch>
+<Files "mailer.php">
+  Require all granted
+</Files>
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule (^|/)\.(?!well-known/) - [F,L]
+  RewriteCond %{REQUEST_METHOD} ^(TRACE|TRACK|DELETE|PUT|CONNECT|OPTIONS)$ [NC]
+  RewriteRule .* - [F,L]
+  RewriteCond %{QUERY_STRING} (<|%3C).*script.*(>|%3E) [NC,OR]
+  RewriteCond %{QUERY_STRING} (\.\./|%2e%2e%2f|etc/passwd|base64_encode|union.*select|concat\() [NC]
+  RewriteRule .* - [F,L]
+</IfModule>
+<IfModule mod_headers.c>
+  Header always unset X-Powered-By
+  Header always set Cross-Origin-Resource-Policy "same-site"
+  Header always set X-Permitted-Cross-Domain-Policies "none"
+</IfModule>
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteCond %{HTTPS} !=on
@@ -57,7 +82,7 @@ Options -Indexes
   </FilesMatch>
   Header always set X-Content-Type-Options "nosniff"
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
-  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+  Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
   Header always set X-Frame-Options "SAMEORIGIN"
   Header always set Permissions-Policy "camera=(self), microphone=(self), geolocation=(self), display-capture=(self), payment=(), usb=()"
   Header always set Cross-Origin-Opener-Policy "same-origin-allow-popups"
