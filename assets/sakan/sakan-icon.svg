@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="سكن">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2a3d7a"/><stop offset=".55" stop-color="#1f2f63"/><stop offset="1" stop-color="#16224a"/></linearGradient>
+    <linearGradient id="gd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6d08a"/><stop offset="1" stop-color="#d99a2b"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+  <g opacity=".08" fill="none" stroke="#fff" stroke-width="5"><path d="M128 40l22 70 70 22-70 22-22 70-22-70-70-22 70-22z"/><path d="M400 300l18 56 56 18-56 18-18 56-18-56-56-18 56-18z"/></g>
+  <path d="M256 70l44 112 116 74-116 44-44 142-44-142-116-44 116-74z" fill="none" stroke="url(#gd)" stroke-width="16" stroke-linejoin="round"/>
+  <path d="M176 330V262l80-58 80 58v68h-50v-50h-60v50z" fill="#fff"/>
+  <rect x="96" y="440" width="320" height="10" rx="5" fill="url(#gd)" opacity=".9"/>
+</svg>
