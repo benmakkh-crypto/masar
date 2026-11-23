@@ -15357,7 +15357,7 @@ function tgDraw() { var app = $('app'), d = TG.d; if (!d) return; tgCss();
 (function () {
   var _goPmm = go; go = function (v) { if (typeof v === 'string' && v.indexOf('pm:') === 0) { try { PM.sub = v.slice(3); } catch (e) { } return _goPmm('tg:pm'); } return _goPmm.apply(this, arguments); };
   var _nvPmm = nav; nav = function () { var gs = _nvPmm.apply(this, arguments); if (!(S.boot && S.boot.pm && S.boot.pm.on) || !trNavShow()) return gs; if (gs.some(function (x) { return x.id === 'pmmgr'; })) return gs;
-    var grp = { id: 'pmmgr', t: 'إدارة البرامج', i: 'fa-folder-tree', g: 'linear-gradient(135deg,#c9a15a,#8a6a1f)', sc: '#f1dfae', items: [['pm:progs', 'البرامج', 'fa-folder-tree'], ['pm:trainees', 'المتدربون/المتدربات', 'fa-user-group'], ['pm:stats', 'الإحصائيات', 'fa-chart-pie']] };
+    var grp = { id: 'pmmgr', t: 'إدارة البرامج', i: 'fa-folder-tree', g: 'linear-gradient(135deg,#c9a15a,#8a6a1f)', sc: '#f1dfae', items: [['pm:progs', 'البرامج', 'fa-folder-tree'], ['pm:stats', 'الإحصائيات', 'fa-chart-pie']] };
     var i = -1; for (var j = 0; j < gs.length; j++) { if (gs[j].id === 'home') { i = j; break; } } gs.splice(i < 0 ? gs.length : i + 1, 0, grp); return gs; };
 })();
 /* «المدربون» قسم رئيسي مستقل: لوحة التميّز والتصنيف */
