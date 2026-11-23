@@ -14858,7 +14858,7 @@ function trCan() { return TRP.d && (TRP.d.role === 'full' || TRP.d.role === 'edi
   VIEW_TITLE.trplan = ['بوابة البرامج', 'الخطة التشغيلية لمشاريع بنيان العالمية 2026'];
   GROUP_DESC.trp = 'الخطة التشغيلية: البرامج والدول والأرباع والغايات';
   var _nv = nav;
-  nav = function () { var gs = _nv.apply(this, arguments).filter(function (g) { return g.id !== 'training'; }); var r = S.boot && S.boot.tr && S.boot.tr.role; if (!r || !trSee() || gs.some(function (g) { return g.id === 'trp'; })) return gs;
+  nav = function () { var gs = _nv.apply(this, arguments).filter(function (g) { return g.id !== 'training'; }); var r = S.boot && S.boot.tr && S.boot.tr.role; if (!r || !trNavShow() || gs.some(function (g) { return g.id === 'trp'; })) return gs;
     var items = [['tr:dash', 'لوحة المؤشرات', 'fa-chart-line'], ['tr:programs', 'البرامج والمشاريع', 'fa-list-check'], ['tr:countries', 'الدول والمستهدفات', 'fa-earth-africa'], ['tr:quarters', 'الأرباع', 'fa-calendar-days'], ['tr:goals', 'الغايات وقياس الأثر', 'fa-bullseye']];
     if (r === 'full') items.push(['tr:access', 'الصلاحيات والسجل', 'fa-user-shield']);
     var g = { id: 'trp', t: 'بوابة البرامج', i: 'fa-graduation-cap', g: 'linear-gradient(135deg,#c9a15a,#8a6a1f)', sc: '#f1dfae', items: items };
@@ -15317,7 +15317,7 @@ function tgCanEdit() { return TG.d && TG.d.role === 'full'; }
   VIEW_TITLE.tgportal = ['بوابة البرامج', 'الكرة الأرضية والمستهدفات والمؤشرات لخطط بنيان العالمية'];
   GROUP_DESC.tgp = 'زيارة بوابة التدريب والتسجيل فيها';
   var _nv = nav;
-  nav = function () { var gs = _nv.apply(this, arguments); if (!(S.boot && S.boot.tg && S.boot.tg.on) || !trSee() || gs.some(function (g) { return g.id === 'tgp'; })) return gs;
+  nav = function () { var gs = _nv.apply(this, arguments); if (!(S.boot && S.boot.tg && S.boot.tg.on) || !trNavShow() || gs.some(function (g) { return g.id === 'tgp'; })) return gs;
     var items = [['tg:globe', 'الكرة الأرضية', 'fa-earth-africa'], ['tg:numbers', 'بنيان في أرقام', 'fa-gauge-high'], ['tg:targets', 'المستهدفات في كل دولة', 'fa-flag'], ['tg:kpi', 'مؤشرات الأداء', 'fa-signal'], ['tg:charts', 'رسومات بيانية', 'fa-chart-pie'], ['tg:years', 'مقارنة السنوات', 'fa-code-compare']];
     var tp = gs.filter(function (g) { return g.id === 'trp'; })[0];
     if (tp) { if (!tp.items.some(function (x) { return x[0] === 'tg:globe'; })) { var ai = tp.items.findIndex(function (x) { return x[0] === 'tr:access'; }); Array.prototype.splice.apply(tp.items, [ai >= 0 ? ai : tp.items.length, 0].concat(items)); } }
@@ -15335,6 +15335,9 @@ var TR_TEAM = ['benmakkh@gmail.com', 'abdullah.m.y.alghamdi@gmail.com', 'iaofct@
 function trSee() { try { var me = S.boot && S.boot.me; if (!me) return false; if (me.role === 'sysadmin') return true; var e = String(me.email || '').trim().toLowerCase(), k = String(me.key || '').trim().toLowerCase(); return TR_TEAM.indexOf(e) >= 0 || TR_TEAM.indexOf(k) >= 0; } catch (e) { return false; } }
 /* وضع «مساحة البرامج» المستقلة: يدخلها منسوبو البرامج مباشرة (من زر موقع بنيان)، فتظهر بوابة التدريب وإدارة البرامج وحدها، وتختفيان من مسار العادي */
 function pmMode() { try { return sessionStorage.getItem('masar_pm') === '1'; } catch (e) { return false; } }
+function trIsSA() { return !!(S.boot && S.boot.me && S.boot.me.role === 'sysadmin'); }
+/* القسمان يظهران في القائمة: لمدير النظام دائماً، وللأربعة في وضع البوابة فقط */
+function trNavShow() { return trSee() && (trIsSA() || pmMode()); }
 (function () { try { var sp = new URLSearchParams(location.search); if (sp.get('pm') === '1' || /(^|#)(pm|programs)$/.test(location.hash)) sessionStorage.setItem('masar_pm', '1'); } catch (e) { } })();
 V.tgportal = function () {
   var app = $('app'); tgCss();
@@ -15351,14 +15354,15 @@ function tgDraw() { var app = $('app'), d = TG.d; if (!d) return; tgCss();
 /* إدارة البرامج كمجموعة رئيسية مستقلّة في القائمة (مثل لوحة التحكم) */
 (function () {
   var _goPmm = go; go = function (v) { if (typeof v === 'string' && v.indexOf('pm:') === 0) { try { PM.sub = v.slice(3); } catch (e) { } return _goPmm('tg:pm'); } return _goPmm.apply(this, arguments); };
-  var _nvPmm = nav; nav = function () { var gs = _nvPmm.apply(this, arguments); if (!(S.boot && S.boot.pm && S.boot.pm.on) || !trSee()) return gs; if (gs.some(function (x) { return x.id === 'pmmgr'; })) return gs;
+  var _nvPmm = nav; nav = function () { var gs = _nvPmm.apply(this, arguments); if (!(S.boot && S.boot.pm && S.boot.pm.on) || !trNavShow()) return gs; if (gs.some(function (x) { return x.id === 'pmmgr'; })) return gs;
     var grp = { id: 'pmmgr', t: 'إدارة البرامج', i: 'fa-folder-tree', g: 'linear-gradient(135deg,#c9a15a,#8a6a1f)', sc: '#f1dfae', items: [['pm:progs', 'البرامج', 'fa-folder-tree'], ['pm:trainers', 'المدربون', 'fa-chalkboard-user'], ['pm:trainees', 'المتدربون/المتدربات', 'fa-user-group'], ['pm:stats', 'الإحصائيات', 'fa-chart-pie']] };
     var i = -1; for (var j = 0; j < gs.length; j++) { if (gs[j].id === 'home') { i = j; break; } } gs.splice(i < 0 ? gs.length : i + 1, 0, grp); return gs; };
 })();
 /* في وضع «مساحة البرامج» لا تظهر إلا المجموعتان: بوابة التدريب وإدارة البرامج، مع مخرج للعودة إلى مسار */
 (function () {
   var _nvF = nav; nav = function () { var gs = _nvF.apply(this, arguments); if (!pmMode() || !trSee()) return gs;
-    var keep = gs.filter(function (g) { return g.id === 'trp' || g.id === 'pmmgr'; });
+    var ids = trIsSA() ? ['home', 'trp', 'pmmgr'] : ['trp', 'pmmgr'];
+    var keep = gs.filter(function (g) { return ids.indexOf(g.id) >= 0; });
     keep.push({ id: 'pmx', t: 'الرجوع إلى الشركة', i: 'fa-building', g: 'linear-gradient(135deg,#c9a15a,#8a6a1f)', sc: '#f1dfae', items: [['pmx:exit', 'الرجوع إلى موقع الشركة', 'fa-building']] });
     return keep; };
   var _goX = go; go = function (v) { if (v === 'pmx:exit') { try { sessionStorage.removeItem('masar_pm'); } catch (e) { } location.href = '/bonyan/'; return; } return _goX.apply(this, arguments); };
