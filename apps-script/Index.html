@@ -410,6 +410,9 @@ html[lang=ur] body{line-height:1.9}
 /* ===== الإصدار 2.3 ===== */
 /* الشريط العلوي بالعناوين الفرعية */
 .hwrap{position:sticky;top:0;z-index:12;min-width:0}
+.app.pm-solo .hwrap{display:none!important}
+.app.pm-solo footer{display:none!important}
+.app.pm-solo .content{padding-top:14px}
 .hwrap .top{position:relative}
 .mega{display:flex;flex-wrap:wrap;align-items:stretch;gap:2px;padding:0 14px;min-width:0;background:linear-gradient(90deg,#13264a,#1b3463 55%,#26467c);color:#fff;box-shadow:0 6px 18px rgba(10,23,46,.18);position:relative}
 .mega::before{content:'';position:absolute;inset:0;opacity:.07;pointer-events:none;background-size:64px 64px;animation:sidepat 60s linear infinite;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cg fill='none' stroke='white' stroke-width='1.2'%3E%3Cpath d='M32 4 L40 24 L60 32 L40 40 L32 60 L24 40 L4 32 L24 24Z'/%3E%3C/g%3E%3C/svg%3E")}
@@ -3507,6 +3510,7 @@ function start() {
     $('root').innerHTML = '<div class="app"><aside class="side" id="side" aria-label="القائمة الرئيسية"></aside><div class="main"><div class="hwrap"><header class="top" id="top"></header><nav class="mega" id="mega" aria-label="القائمة العلوية"></nav><div class="ticker" id="tk" aria-label="الشريط الإخباري"></div></div><main class="content" id="app"></main>' +
       '<footer class="muted" style="text-align:center;padding:16px;font-size:13px">' + logosHtml('foot-logos') + '© ' + new Date().getFullYear() + ' ' + esc(b.company) + ' · نظام إدارة المعاملات · الإصدار ' + esc(b.version) + '</footer></div></div>';
     try { if (localStorage.getItem('masar_compact')) document.querySelector('.app').classList.add('compact'); } catch (e) {}
+    try { if (pmMode() && trSee() && S.boot.me.role !== 'sysadmin') document.querySelector('.app').classList.add('pm-solo'); } catch (e) {}
     renderTop(); renderTicker();
     api('myNotifications').then(function (l) { var n = l.filter(function (x) { return (Date.now() - new Date(x.at)) < 86400000; }).length; S.unseen = n; if (n && $('nb')) $('nb').insertAdjacentHTML('beforeend', '<span class="dot">' + n + '</span>'); }).catch(function () {});
     var _pg = ''; try { _pg = sessionStorage.getItem('masar_go') || ''; sessionStorage.removeItem('masar_go'); } catch (e) {}
@@ -14852,7 +14856,7 @@ function trCan() { return TRP.d && (TRP.d.role === 'full' || TRP.d.role === 'edi
   VIEW_TITLE.trplan = ['بوابة البرامج', 'الخطة التشغيلية لمشاريع بنيان العالمية 2026'];
   GROUP_DESC.trp = 'الخطة التشغيلية: البرامج والدول والأرباع والغايات';
   var _nv = nav;
-  nav = function () { var gs = _nv.apply(this, arguments).filter(function (g) { return g.id !== 'training'; }); var r = S.boot && S.boot.tr && S.boot.tr.role; if (!r || !trSee() || !pmMode() || gs.some(function (g) { return g.id === 'trp'; })) return gs;
+  nav = function () { var gs = _nv.apply(this, arguments).filter(function (g) { return g.id !== 'training'; }); var r = S.boot && S.boot.tr && S.boot.tr.role; if (!r || !trSee() || gs.some(function (g) { return g.id === 'trp'; })) return gs;
     var items = [['tr:dash', 'لوحة المؤشرات', 'fa-chart-line'], ['tr:programs', 'البرامج والمشاريع', 'fa-list-check'], ['tr:countries', 'الدول والمستهدفات', 'fa-earth-africa'], ['tr:quarters', 'الأرباع', 'fa-calendar-days'], ['tr:goals', 'الغايات وقياس الأثر', 'fa-bullseye']];
     if (r === 'full') items.push(['tr:access', 'الصلاحيات والسجل', 'fa-user-shield']);
     var g = { id: 'trp', t: 'بوابة البرامج', i: 'fa-graduation-cap', g: 'linear-gradient(135deg,#c9a15a,#8a6a1f)', sc: '#f1dfae', items: items };
@@ -15311,7 +15315,7 @@ function tgCanEdit() { return TG.d && TG.d.role === 'full'; }
   VIEW_TITLE.tgportal = ['بوابة البرامج', 'الكرة الأرضية والمستهدفات والمؤشرات لخطط بنيان العالمية'];
   GROUP_DESC.tgp = 'زيارة بوابة التدريب والتسجيل فيها';
   var _nv = nav;
-  nav = function () { var gs = _nv.apply(this, arguments); if (!(S.boot && S.boot.tg && S.boot.tg.on) || !trSee() || !pmMode() || gs.some(function (g) { return g.id === 'tgp'; })) return gs;
+  nav = function () { var gs = _nv.apply(this, arguments); if (!(S.boot && S.boot.tg && S.boot.tg.on) || !trSee() || gs.some(function (g) { return g.id === 'tgp'; })) return gs;
     var items = [['tg:globe', 'الكرة الأرضية', 'fa-earth-africa'], ['tg:numbers', 'بنيان في أرقام', 'fa-gauge-high'], ['tg:targets', 'المستهدفات في كل دولة', 'fa-flag'], ['tg:kpi', 'مؤشرات الأداء', 'fa-signal'], ['tg:charts', 'رسومات بيانية', 'fa-chart-pie'], ['tg:years', 'مقارنة السنوات', 'fa-code-compare']];
     var tp = gs.filter(function (g) { return g.id === 'trp'; })[0];
     if (tp) { if (!tp.items.some(function (x) { return x[0] === 'tg:globe'; })) { var ai = tp.items.findIndex(function (x) { return x[0] === 'tr:access'; }); Array.prototype.splice.apply(tp.items, [ai >= 0 ? ai : tp.items.length, 0].concat(items)); } }
@@ -15345,7 +15349,7 @@ function tgDraw() { var app = $('app'), d = TG.d; if (!d) return; tgCss();
 /* إدارة البرامج كمجموعة رئيسية مستقلّة في القائمة (مثل لوحة التحكم) */
 (function () {
   var _goPmm = go; go = function (v) { if (typeof v === 'string' && v.indexOf('pm:') === 0) { try { PM.sub = v.slice(3); } catch (e) { } return _goPmm('tg:pm'); } return _goPmm.apply(this, arguments); };
-  var _nvPmm = nav; nav = function () { var gs = _nvPmm.apply(this, arguments); if (!(S.boot && S.boot.pm && S.boot.pm.on) || !trSee() || !pmMode()) return gs; if (gs.some(function (x) { return x.id === 'pmmgr'; })) return gs;
+  var _nvPmm = nav; nav = function () { var gs = _nvPmm.apply(this, arguments); if (!(S.boot && S.boot.pm && S.boot.pm.on) || !trSee()) return gs; if (gs.some(function (x) { return x.id === 'pmmgr'; })) return gs;
     var grp = { id: 'pmmgr', t: 'إدارة البرامج', i: 'fa-folder-tree', g: 'linear-gradient(135deg,#c9a15a,#8a6a1f)', sc: '#f1dfae', items: [['pm:progs', 'البرامج', 'fa-folder-tree'], ['pm:trainers', 'المدربون', 'fa-chalkboard-user'], ['pm:trainees', 'المتدربون/المتدربات', 'fa-user-group'], ['pm:stats', 'الإحصائيات', 'fa-chart-pie']] };
     var i = -1; for (var j = 0; j < gs.length; j++) { if (gs[j].id === 'home') { i = j; break; } } gs.splice(i < 0 ? gs.length : i + 1, 0, grp); return gs; };
 })();
@@ -15353,9 +15357,9 @@ function tgDraw() { var app = $('app'), d = TG.d; if (!d) return; tgCss();
 (function () {
   var _nvF = nav; nav = function () { var gs = _nvF.apply(this, arguments); if (!pmMode() || !trSee()) return gs;
     var keep = gs.filter(function (g) { return g.id === 'trp' || g.id === 'pmmgr'; });
-    keep.push({ id: 'pmx', t: 'العودة إلى مسار', i: 'fa-arrow-right-from-bracket', g: 'linear-gradient(135deg,#64748b,#334155)', sc: '#cbd5e1', items: [['pmx:exit', 'الخروج إلى المعاملات', 'fa-arrow-right-from-bracket']] });
+    keep.push({ id: 'pmx', t: 'الرجوع إلى الشركة', i: 'fa-building', g: 'linear-gradient(135deg,#c9a15a,#8a6a1f)', sc: '#f1dfae', items: [['pmx:exit', 'الرجوع إلى موقع الشركة', 'fa-building']] });
     return keep; };
-  var _goX = go; go = function (v) { if (v === 'pmx:exit') { try { sessionStorage.removeItem('masar_pm'); } catch (e) { } renderSide(); renderMega(); return _goX('dashboard'); } return _goX.apply(this, arguments); };
+  var _goX = go; go = function (v) { if (v === 'pmx:exit') { try { sessionStorage.removeItem('masar_pm'); } catch (e) { } location.href = '/bonyan/'; return; } return _goX.apply(this, arguments); };
 })();
 function tgHead() { var yrs = Object.keys(TG.d.years).sort(), tabs = [['globe', 'الكرة الأرضية', 'fa-earth-africa'], ['numbers', 'بنيان في أرقام', 'fa-gauge-high'], ['targets', 'المستهدفات', 'fa-flag'], ['kpi', 'مؤشرات الأداء', 'fa-signal'], ['charts', 'رسومات بيانية', 'fa-chart-pie'], ['years', 'مقارنة السنوات', 'fa-code-compare']];
   return '<header class="tghd"><div class="tghd-b"><img src="assets/logos/bonyan-training.png" alt="" class="tglogo"><div><span class="tgeb">' + T('بنيان العالمية') + ' · ' + (TG.tab === 'years' ? T('كل السنوات') : TG.y === 'all' ? T('كل الأعوام') + ' (' + yrs[0] + '–' + yrs[yrs.length - 1] + ')' : T('خطة') + ' ' + esc(TG.y)) + '</span><h1>' + T('بوابة البرامج') + '</h1><p>' + T('برامج تدريبية للأئمة والمعلمين والدعاة والشباب في دول العالم — المستهدف والمتحقق في كل دولة') + '</p></div></div>' +
