@@ -88,11 +88,12 @@ section{padding:88px 0;scroll-margin-top:70px}
 .btn-ghost{border:1.5px solid rgba(255,255,255,.45);color:#fff}
 .btn-ghost:hover{background:rgba(255,255,255,.1)}
 .theme-t{background:var(--surface-2);border:0;border-radius:10px;width:38px;height:38px;cursor:pointer;color:var(--ink);font-size:17px}
-.emp-login{display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 14px;border-radius:11px;font:800 14px Tajawal,sans-serif;text-decoration:none;color:#13213f;background:linear-gradient(135deg,#f0d499,#d9b268);border:1px solid #cBA461;box-shadow:0 6px 16px -8px rgba(201,161,90,.8);transition:filter .2s,transform .2s}
-.emp-login:hover{filter:brightness(1.06);transform:translateY(-1px)}
-.emp-login svg{width:17px;height:17px}
+.emp-login{display:inline-flex;align-items:center;gap:10px;height:42px;padding:0 18px 0 6px;border-radius:13px;font:800 14.5px Tajawal,sans-serif;letter-spacing:.2px;text-decoration:none;color:#15233f;background:linear-gradient(135deg,#f7e0ae 0%,#e6c47f 48%,#d5aa5a 100%);border:1px solid rgba(255,255,255,.45);box-shadow:0 10px 24px -10px rgba(201,161,90,.85),inset 0 1px 0 rgba(255,255,255,.55);transition:transform .22s cubic-bezier(.2,.7,.2,1),box-shadow .22s,filter .22s}
+.emp-login:hover{transform:translateY(-2px);filter:brightness(1.04);box-shadow:0 16px 30px -10px rgba(201,161,90,1),inset 0 1px 0 rgba(255,255,255,.65)}
+.emp-login:active{transform:translateY(0)}
+.emp-login svg{width:18px;height:18px;flex:none;padding:6px;box-sizing:content-box;border-radius:9px;color:#fff;background:linear-gradient(135deg,#1c2f54,#13213f);box-shadow:0 2px 6px rgba(19,33,63,.3)}
 .emp-login span{white-space:nowrap}
-@media(max-width:640px){.emp-login span{display:none}.emp-login{padding:0;width:38px;justify-content:center}}
+@media(max-width:640px){.emp-login span{display:none}.emp-login{padding:0;width:42px;justify-content:center;gap:0}.emp-login svg{background:none;box-shadow:none;color:#15233f;padding:0;width:19px;height:19px}}
 .menu-t{display:none;background:var(--surface-2);border:0;border-radius:10px;width:40px;height:40px;cursor:pointer;color:var(--ink);font-size:20px}
 @media (max-width:1060px){
   .links{position:fixed;inset:68px 0 auto 0;flex-direction:column;background:var(--surface);padding:12px 16px 20px;border-bottom:1px solid var(--line);display:none}
