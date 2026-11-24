@@ -9893,7 +9893,7 @@ dashArrange = function () { _da62.apply(this, arguments); try { innerApply(); } 
 /* ---------- 2.35 نموذج موقع الشركة — لمدير النظام فقط ---------- */
 var SITE_PROTO = 'bonyan/';
 /* الموقع الإلكتروني: لمدير النظام والإدارة العليا، ويخضع لنظام «إظهار وإخفاء الصفحات» */
-function canWeb() { return isSA() || !!(S.boot && S.boot.ten && S.boot.ten.head) || can('site_edit'); }
+function canWeb() { return isSA() || (typeof trSee === 'function' && trSee()) || !!(S.boot && S.boot.ten && S.boot.ten.head) || can('site_edit'); }
 var _nav63 = _nav26;
 _nav26 = function () {
   var gs = _nav63();
@@ -12652,7 +12652,7 @@ uimpOpen = function () {
 /* p148: زر «موقع الشركة» في واجهة لوحة التحكم — يظهر للجميع ويفتح الموقع مباشرة */
 function heroSite() { document.querySelectorAll('#app .hero').forEach(function (h) { var c = h.querySelector(':scope > .clock'); if (!c || h.querySelector('.hero-site')) return;
   var w = document.createElement('div'); w.className = 'hero-side'; c.parentNode.insertBefore(w, c);
-  w.insertAdjacentHTML('beforeend', '<a class="hero-site" href="' + SITE_PROTO + '" data-siteopen rel="noopener"><span class="hs-ic"><i class="fa-solid fa-globe"></i></span><span class="hs-tx"><b>' + T('موقع الشركة') + '</b><small>masarbonyan.online/bonyan</small></span><i class="fa-solid fa-maximize hs-go"></i></a>'); w.appendChild(c); }); }
+  w.insertAdjacentHTML('beforeend', '<a class="hero-site" href="' + SITE_PUBLIC + '" target="_blank" rel="noopener"><span class="hs-ic"><i class="fa-solid fa-globe"></i></span><span class="hs-tx"><b>' + T('موقع الشركة') + '</b><small>masarbonyan.online/bonyan</small></span><i class="fa-solid fa-arrow-up-right-from-square hs-go"></i></a>'); w.appendChild(c); }); }
 /* فتح «موقع الشركة» داخل التطبيق في نفس الصفحة (نافذة ملء الشاشة) بدل فتحه خارجياً */
 function siteOpen() { if (document.getElementById('siteOv')) return;
   document.body.insertAdjacentHTML('beforeend', '<div id="siteOv" class="site-ov"><div class="site-ov-bar"><div><b><i class="fa-solid fa-globe"></i> ' + T('موقع الشركة') + '</b><small>masarbonyan.online/bonyan</small></div><span style="flex:1"></span><a class="btn sm" href="' + SITE_PROTO + '" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i> ' + T('صفحة مستقلة') + '</a><button type="button" class="btn sm" id="siteCls"><i class="fa-solid fa-xmark"></i> ' + T('إغلاق') + '</button></div><div class="site-ov-fr"><iframe src="' + SITE_PROTO + '" title="' + T('موقع الشركة') + '"></iframe></div></div>');
@@ -15570,7 +15570,7 @@ trQuarters = function () { var L = TRP.d.programs, cq = TRP.cq, IC = ['fa-seedli
 /* ===================== إدارة البرامج (Pm) — كشافة عامة واحترافية ===================== */
 var PM = { sub: 'progs', y: 'all', q: '', sel: null, psec: 'overview', yrOff: (function(){ try { return JSON.parse(localStorage.getItem('pm_yrOff')||'{}')||{}; } catch(e){ return {}; } })() };
 function pmHighRole() { return TG.pm && TG.pm.role === 'high'; }
-function pmLoad() { api('pmBoot').then(function (d) { TG.pm = d; if (TG.tab === 'pm') tgDraw(); }).catch(function (e) { TG.pm = { role: 'staff', programs: [], error: (e && e.message) || String(e) }; if (TG.tab === 'pm') tgDraw(); }); }
+function pmLoad() { api('pmBoot').then(function (d) { TG.pm = d; if (TG.tab === 'pm' || TG.tab === 'mdr') tgDraw(); }).catch(function (e) { TG.pm = { role: 'staff', programs: [], error: (e && e.message) || String(e) }; if (TG.tab === 'pm' || TG.tab === 'mdr') tgDraw(); }); }
 function pmProg(id) { return (TG.pm.programs || []).filter(function (p) { return String(p.id) === String(id); })[0]; }
 function pmYears() { var s = {}; (TG.pm.programs || []).forEach(function (p) { if (p.year) s[p.year] = 1; }); try { if (TG.d && TG.d.years) Object.keys(TG.d.years).forEach(function (y) { s[y] = 1; }); } catch (e) { } return Object.keys(s).sort().reverse(); }
 function pmYearAdd() {
@@ -16041,124 +16041,261 @@ function pmNoteCat(c) { for (var i = 0; i < PM_NOTE_CATS.length; i++) if (PM_NOT
 function pmNoteGet(id) { try { var a = (TG.pmn && TG.pmn.rows) || []; for (var i = 0; i < a.length; i++) if (String(a[i].id) === String(id)) return a[i]; } catch (e) { } return null; }
 function pmNoteDate(v) { if (!v) return ''; try { var d = new Date(v); if (!isNaN(d)) { var p = function (n) { return (n < 10 ? '0' : '') + n; }; return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()); } } catch (e) { } return String(v).slice(0, 16).replace('T', ' '); }
 /* ===================== قسم «المدربون» المستقل: لوحة التميّز + الإحصائيات + التصنيف ===================== */
-var MDR = { sub: 'board', q: '', tier: '' };
+var MDR = { sub: 'board', q: '', tier: '', pid: '' };
 /* التصنيف النوعي الرسمي لبنيان: حسب عدد الدورات مع بنيان في العام (مع تقييم المتدربين والمؤهلات رسميًّا) */
 var MDR_TIERS = {
-  c:    { n: 'مدرب استشاري', k: 'استشاري', ic: 'fa-crown',          grad: 'linear-gradient(160deg,#2f7a3d,#1c5128)', lo: 36, hi: 50, ev: '٩٠–١٠٠' },
-  pro:  { n: 'مدرب محترف',   k: 'محترف',   ic: 'fa-gem',            grad: 'linear-gradient(160deg,#a53f2b,#6f2518)', lo: 21, hi: 35, ev: '٨٥–٨٩' },
-  d:    { n: 'مدرب متميز',   k: 'متميز',   ic: 'fa-medal',          grad: 'linear-gradient(160deg,#a67a12,#6f5008)', lo: 11, hi: 20, ev: '٨٠–٨٤' },
-  p:    { n: 'مدرب ممارس',   k: 'ممارس',   ic: 'fa-award',          grad: 'linear-gradient(160deg,#855627,#523212)', lo: 5,  hi: 10, ev: '٧٠–٧٩' },
-  none: { n: 'غير مصنّف',    k: 'غير مصنّف', ic: 'fa-user-clock',    grad: 'linear-gradient(160deg,#5f6a80,#3e4659)', lo: 0,  hi: 4,  ev: '—' }
+  c:    { n: 'مدرب استشاري', k: 'استشاري',  ic: 'fa-crown',      lo: 36, hi: 50, ev: '٩٠–١٠٠', rc: '#2e8b57' },
+  pro:  { n: 'مدرب محترف',   k: 'محترف',    ic: 'fa-gem',        lo: 21, hi: 35, ev: '٨٥–٨٩',  rc: '#b1483a' },
+  d:    { n: 'مدرب متميز',   k: 'متميز',    ic: 'fa-medal',      lo: 11, hi: 20, ev: '٨٠–٨٤',  rc: '#c99a2e' },
+  p:    { n: 'مدرب ممارس',   k: 'ممارس',    ic: 'fa-award',      lo: 5,  hi: 10, ev: '٧٠–٧٩',  rc: '#a9742f' },
+  none: { n: 'غير مصنّف',    k: 'غير مصنّف', ic: 'fa-user-clock', lo: 0,  hi: 4,  ev: '—',     rc: '#7a8699' }
 };
 var MDR_ORDER = ['c', 'pro', 'd', 'p', 'none'];
 function mdrTier(courses) { return courses >= 36 ? 'c' : courses >= 21 ? 'pro' : courses >= 11 ? 'd' : courses >= 5 ? 'p' : 'none'; }
-/* الدرجة الشاملة (كما اتفقنا): برامج + دورات + متدربون — للترتيب والتميّز، والمستوى رسميٌّ بالدورات */
 function mdrScore(s) { return Math.round(s.progs * 10 + s.courses * 3 + s.trainees * 0.2); }
 function mdrData() {
   var rows = pmTrRows_();
-  var arr = rows.map(function (t) { var s = pmTrStat_(t); return { id: t.id, name: t.name, ttype: t.ttype || '', qual: t.qual || '', status: t.status || 'نشط', progs: s.progs, courses: s.courses, trainees: s.trainees, score: mdrScore(s), tier: mdrTier(s.courses) }; });
+  var arr = rows.map(function (t) { var s = pmTrStat_(t); return { id: t.id, name: t.name, photo: t.photo || '', phone: t.phone || '', email: t.email || '', address: t.address || '', cv: t.cv || '', ttype: t.ttype || '', qual: t.qual || '', status: t.status || 'نشط', progs: s.progs, courses: s.courses, trainees: s.trainees, score: mdrScore(s), tier: mdrTier(s.courses), raw: t }; });
   arr.sort(function (a, b) { return b.score - a.score || b.courses - a.courses || b.progs - a.progs; });
   arr.forEach(function (x, i) { x.rank = i + 1; });
   return arr;
 }
 function mdrInit_(n) { return String(n || '').replace(/^(د|أ|م|أ\.د)\.?\s*/, '').charAt(0) || '؟'; }
+function mdrCanEd() { return !!(TG.pmtr && TG.pmtr.canEdit); }
 function mdrBadge(tier, big) { var m = MDR_TIERS[tier]; return '<span class="mdr-badge mdr-' + tier + (big ? ' big' : '') + '"><i class="fa-solid ' + m.ic + '"></i> ' + T(m.k) + '</span>'; }
+function mdrAva_(x, cls) { return x.photo ? '<img src="' + esc(x.photo) + '" alt="" class="' + cls + '">' : '<div class="' + cls + ' ini">' + esc(mdrInit_(x.name)) + '</div>'; }
 function mdrCss() {
   if (document.getElementById('mdrCss')) return; var st = document.createElement('style'); st.id = 'mdrCss';
-  st.textContent = '.mdrw .mdr-body{padding:8px 0 30px;display:flex;flex-direction:column;gap:18px}' +
-    '.mdr-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:999px;font-weight:800;font-size:12px;border:1px solid;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,.06)}.mdr-badge.big{font-size:13.5px;padding:6px 15px}' +
-    '.mdr-badge.mdr-c{background:linear-gradient(135deg,#dff3e2,#b7e3bf);color:#1e5b2c;border-color:#7cc389}.mdr-badge.mdr-pro{background:linear-gradient(135deg,#fbe0da,#f3b9ac);color:#8f3722;border-color:#e08a76}.mdr-badge.mdr-d{background:linear-gradient(135deg,#fdf1cf,#f5df9e);color:#7a5a07;border-color:#e3b84f}.mdr-badge.mdr-p{background:linear-gradient(135deg,#f3e3d4,#e2c3a6);color:#6e4420;border-color:#caa078}.mdr-badge.mdr-none{background:linear-gradient(135deg,#eef1f6,#dde3ea);color:#51607a;border-color:#c4ccd6}' +
-    '.mdr-podium{display:grid;grid-template-columns:1fr 1.14fr 1fr;gap:16px;align-items:end;padding-top:16px}' +
-    '.mdr-pod{border-radius:22px;padding:22px 16px 18px;text-align:center;color:#fff;position:relative;overflow:hidden;box-shadow:0 22px 46px -22px rgba(10,20,46,.8),inset 0 1px 0 rgba(255,255,255,.18);cursor:pointer;transition:transform .25s}.mdr-pod:hover{transform:translateY(-4px)}.mdr-pod::before{content:"";position:absolute;inset:0;background:radial-gradient(130% 80% at 50% -10%,rgba(255,255,255,.3),transparent 55%)}' +
-    '.mdr-pod.first{padding-top:32px;box-shadow:0 30px 60px -22px rgba(201,161,90,.6),0 0 0 2px rgba(247,224,160,.65),inset 0 1px 0 rgba(255,255,255,.3)}.mdr-pod.first::after{content:"";position:absolute;top:0;inset-inline-start:-60%;width:38%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-18deg);animation:mdrShine 4.5s ease-in-out infinite}@keyframes mdrShine{0%,62%{inset-inline-start:-60%}86%,100%{inset-inline-start:120%}}' +
-    '.mdr-pod .crown{position:absolute;top:-1px;inset-inline-start:50%;transform:translateX(50%);font-size:26px;color:#ffe08a;filter:drop-shadow(0 3px 5px rgba(0,0,0,.4));z-index:2}.mdr-pod .rk{position:absolute;top:13px;inset-inline-start:15px;font:900 15px Tajawal,sans-serif;background:rgba(0,0,0,.24);border-radius:9px;padding:2px 9px;z-index:2}' +
-    '.mdr-pod .av{width:68px;height:68px;border-radius:50%;margin:6px auto 11px;display:grid;place-items:center;font:900 27px Tajawal,sans-serif;background:rgba(0,0,0,.24);border:2.5px solid rgba(255,255,255,.6);position:relative;z-index:1}.mdr-pod.first .av{width:82px;height:82px;font-size:33px;border-color:#ffe08a}' +
-    '.mdr-pod h4{margin:0;font-size:16.5px;font-weight:900;position:relative;z-index:1}.mdr-pod .mt{margin:7px 0;position:relative;z-index:1}.mdr-pod .sc{font:900 28px Tajawal,sans-serif;position:relative;z-index:1;margin-top:2px}.mdr-pod .sc small{font-size:12px;font-weight:700;opacity:.9}.mdr-pod .nums{font-size:11.5px;opacity:.95;margin-top:7px;position:relative;z-index:1;font-weight:700}' +
-    '.mdr-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}@media(max-width:760px){.mdr-tiles{grid-template-columns:1fr 1fr}.mdr-podium{grid-template-columns:1fr;align-items:stretch}.mdr-pod.first{padding-top:24px}}' +
-    '.mdr-tile{border-radius:16px;padding:15px 16px;color:#fff;position:relative;overflow:hidden;box-shadow:0 12px 26px -16px rgba(10,20,46,.55);text-shadow:0 1px 2px rgba(0,0,0,.28)}.mdr-tile::before{content:"";position:absolute;inset:0;background:radial-gradient(120% 80% at 100% 0,rgba(255,255,255,.22),transparent 55%)}.mdr-tile b{font:900 27px Tajawal,sans-serif;display:block;position:relative;z-index:1}.mdr-tile small{font-size:12.5px;opacity:.96;font-weight:800;position:relative;z-index:1}.mdr-tile i.bg{position:absolute;inset-inline-end:12px;bottom:8px;font-size:40px;opacity:.2;z-index:0}' +
-    '.mdr-card{background:var(--card,#fff);border:1px solid var(--line,#e8ecf4);border-radius:20px;padding:18px 20px;box-shadow:0 10px 30px -22px rgba(10,20,46,.4)}.mdr-card>h3{margin:0 0 14px;font-size:15.5px;color:#13264a;display:flex;align-items:center;gap:9px;font-weight:900}' +
-    '.mdr-tw{overflow:auto;border-radius:12px}.mdr-tbl{width:100%;border-collapse:collapse;font-size:13.5px}.mdr-tbl th,.mdr-tbl td{padding:11px 10px;text-align:center;border-bottom:1px solid var(--line,#eef1f6)}.mdr-tbl th{background:#f4f7fc;color:#5b6b8c;font-weight:800;position:sticky;top:0}.mdr-tbl td.nm{text-align:start;font-weight:800;color:#13264a}.mdr-tbl tbody tr{transition:background .15s}.mdr-tbl tbody tr:hover td{background:#f7f9fd}.mdr-rk{font:900 15px Tajawal,sans-serif;color:#c9a15a}' +
-    '.mdr-sec{margin-top:2px}.mdr-sech{display:flex;align-items:center;gap:11px;margin:0 0 12px;font-size:15px;font-weight:900;color:#13264a}.mdr-sech .cnt{margin-inline-start:auto;font-size:12.5px;color:#6b7686;font-weight:800;background:#f1f4fa;border-radius:999px;padding:3px 11px}' +
-    '.mdr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(228px,1fr));gap:13px}' +
-    '.mdr-m{border-radius:17px;padding:15px;color:#fff;position:relative;overflow:hidden;box-shadow:0 14px 30px -18px rgba(10,20,46,.65),inset 0 1px 0 rgba(255,255,255,.15);cursor:pointer;transition:transform .2s,box-shadow .2s;text-shadow:0 1px 2px rgba(0,0,0,.3)}.mdr-m:hover{transform:translateY(-3px);box-shadow:0 22px 40px -18px rgba(10,20,46,.8)}.mdr-m .wm{position:absolute;inset-inline-end:-10px;top:-16px;font-size:92px;opacity:.14;z-index:0;transform:rotate(-8deg)}' +
-    '.mdr-m .top{display:flex;align-items:center;gap:11px;position:relative;z-index:1}.mdr-m .av{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font:900 19px Tajawal,sans-serif;background:rgba(0,0,0,.26);border:2px solid rgba(255,255,255,.6);flex:none}.mdr-m .top b{font-size:14.5px;font-weight:900;line-height:1.3}.mdr-m .top small{font-size:11px;opacity:.92;display:block;margin-top:1px}' +
-    '.mdr-m .mt{margin:11px 0 0;position:relative;z-index:1}.mdr-m .nums{display:flex;gap:7px;margin-top:11px;position:relative;z-index:1}.mdr-m .nums div{flex:1;text-align:center;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:7px 2px}.mdr-m .nums b{font:900 16px Tajawal,sans-serif;display:block}.mdr-m .nums small{font-size:9.5px;opacity:.92}' +
-    '.mdr-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:2px}.mdr-bar input{flex:1;min-width:170px;border:1px solid var(--line,#e5e9f2);border-radius:12px;padding:10px 15px;font:inherit;font-size:14px;background:var(--card,#fff)}.mdr-chip{border:1px solid var(--line,#e5e9f2);background:var(--card,#fff);border-radius:999px;padding:8px 15px;font:800 13px Tajawal,sans-serif;cursor:pointer;color:#13264a;transition:all .15s}.mdr-chip:hover{border-color:#c9a15a}.mdr-chip.on{background:#13264a;color:#fff;border-color:#13264a}' +
-    '.mdr-rep{all:unset;cursor:pointer;width:30px;height:30px;border-radius:9px;display:inline-grid;place-items:center;color:#fff;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.25);font-size:12.5px;position:relative;z-index:1}.mdr-rep:hover{background:#fff;color:#13264a}.mdr-tbl .mdr-rep{color:#13264a;background:#eef2f8;border-color:#d9e1ee}.mdr-tbl .mdr-rep:hover{background:#c9a35f;color:#fff}' +
-    '.mdr-note{font-size:12px;color:#6b7686;display:flex;align-items:center;gap:6px;line-height:1.7}';
+  st.textContent =
+    '.mdrw .mdr-body{display:flex;flex-direction:column;gap:16px;padding:4px 0 32px}' +
+    '.mdr-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:999px;font-weight:800;font-size:12px;border:1px solid;white-space:nowrap}.mdr-badge.big{font-size:13px;padding:5px 14px}' +
+    '.mdr-badge.mdr-c{background:#e9f4ec;color:#235c33;border-color:#9ac2a3}.mdr-badge.mdr-pro{background:#f6e9e6;color:#7e3322;border-color:#d7a492}.mdr-badge.mdr-d{background:#f8efd6;color:#7a5908;border-color:#dcc078}.mdr-badge.mdr-p{background:#f1e6d7;color:#6c4a24;border-color:#cba87e}.mdr-badge.mdr-none{background:#eef1f6;color:#51607a;border-color:#c4ccd6}' +
+    /* hero */
+    '.mdr-hero{position:relative;overflow:hidden;background:linear-gradient(120deg,#13233b,#24456f);border-radius:20px;padding:22px 26px;color:#fff;display:flex;align-items:center;gap:20px;box-shadow:0 20px 44px -28px rgba(16,30,54,.8)}' +
+    '.mdr-pat{position:absolute;inset:0;opacity:.07;background-image:radial-gradient(circle at 18px 18px,#fff 1.4px,transparent 0);background-size:24px 24px}' +
+    '.mdr-kpi{position:relative;z-index:1;background:rgba(0,0,0,.26);border-inline-start:4px solid #c9a24a;border-radius:14px;padding:13px 20px;min-width:150px;text-align:center}.mdr-kpi b{font-size:30px;font-weight:900;color:#e6c87e;display:block;line-height:1}.mdr-kpi span{font-size:12px;color:#c7d2e2;font-weight:700}' +
+    '.mdr-ht{position:relative;z-index:1;flex:1}.mdr-eb{display:inline-block;background:rgba(201,162,74,.18);color:#e6c87e;font-size:11.5px;font-weight:800;padding:3px 12px;border-radius:999px;border:1px solid rgba(201,162,74,.4);margin-bottom:6px}.mdr-ht h1{font-size:26px;font-weight:900;margin:2px 0}.mdr-ht p{font-size:13px;color:#c7d3e4;font-weight:500;line-height:1.6;max-width:760px}' +
+    '.mdr-logo{position:relative;z-index:1;width:60px;height:60px;border-radius:15px;background:linear-gradient(135deg,#223c5e,#15273f);border:1px solid rgba(201,162,74,.5);display:grid;place-items:center;color:#e6c87e;font-size:24px;flex:none;overflow:hidden}.mdr-logo img{width:100%;height:100%;object-fit:contain;padding:8px}' +
+    /* chips */
+    '.mdr-chips{display:flex;gap:9px;flex-wrap:wrap;align-items:center}' +
+    '.mdr-chip{display:flex;align-items:center;gap:7px;background:#fff;border:1px solid #e7ecf3;border-radius:12px;padding:9px 14px;font-weight:800;font-size:13px;color:#15273f;cursor:pointer;box-shadow:0 6px 16px -13px rgba(16,30,54,.5);transition:all .15s}.mdr-chip:hover{border-color:#c9a24a}.mdr-chip.on{background:#15273f;color:#fff;border-color:#15273f}.mdr-chip.on i{color:#e6c87e}' +
+    '.mdr-chip .n{min-width:21px;height:21px;border-radius:7px;display:grid;place-items:center;color:#fff;font-size:11.5px;font-weight:900;background:var(--c,#5f6b80)}.mdr-chip i{color:var(--c,#15273f)}.mdr-chip.on .n{background:#c9a24a;color:#2a2008}' +
+    '.mdr-sp{flex:1}' +
+    /* toolbar */
+    '.mdr-tools{display:flex;gap:8px;flex-wrap:wrap}.mdr-tb{display:inline-flex;align-items:center;gap:7px;border:1px solid #e7ecf3;background:#fff;border-radius:11px;padding:9px 14px;font:800 13px Tajawal,sans-serif;color:#15273f;cursor:pointer;transition:all .15s}.mdr-tb:hover{border-color:#c9a24a;color:#8a6a1f}.mdr-tb.pri{background:#15273f;color:#fff;border-color:#15273f}.mdr-tb.pri i{color:#e6c87e}.mdr-tb i{color:#c9a24a}' +
+    /* card */
+    '.mdr-card{position:relative;overflow:hidden;background:#fff;border:1px solid #e7ecf3;border-radius:18px;padding:19px 22px;box-shadow:0 14px 34px -28px rgba(16,30,54,.5)}.mdr-card::before{content:"";position:absolute;top:0;inset-inline:0;height:3px;background:linear-gradient(90deg,#c9a24a,transparent)}' +
+    '.mdr-ch{display:flex;align-items:center;gap:10px;font-size:15.5px;font-weight:900;color:#15273f;margin-bottom:15px}.mdr-ci{width:33px;height:33px;border-radius:10px;background:#f3f6fb;color:#c9a24a;display:grid;place-items:center;font-size:14px}.mdr-cnt{margin-inline-start:auto;font-size:12.5px;color:#6f7c90;font-weight:800;background:#f1f4fa;border-radius:999px;padding:3px 12px}' +
+    /* gauges */
+    '.mdr-gz{display:grid;grid-template-columns:repeat(6,1fr);gap:13px}@media(max-width:860px){.mdr-gz{grid-template-columns:repeat(3,1fr)}}' +
+    '.mdr-g{text-align:center;background:#faf9f4;border:1px solid #eee4cf;border-radius:15px;padding:15px 8px 13px;position:relative;cursor:pointer;transition:transform .18s}.mdr-g:hover{transform:translateY(-3px)}.mdr-g.top{border-color:#c9a24a;box-shadow:0 10px 22px -16px rgba(201,162,74,.8)}' +
+    '.mdr-ring{position:relative;width:92px;height:92px;margin:0 auto 9px}.mdr-ring svg{transform:rotate(-90deg)}.mdr-ctr{position:absolute;inset:0;display:grid;place-items:center;font-weight:900;font-size:18px;color:#15273f;line-height:1}.mdr-ctr small{display:block;font-size:9px;color:#6f7c90;font-weight:800;margin-top:1px}' +
+    '.mdr-g h4{font-size:12.5px;font-weight:900;color:#15273f;margin:0;line-height:1.35;min-height:33px;display:flex;align-items:center;justify-content:center}.mdr-glv{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:800;padding:2px 9px;border-radius:999px;margin:3px 0 5px;border:1px solid}.mdr-gsub{font-size:10.5px;color:#6f7c90;font-weight:700;display:block}.mdr-grank{position:absolute;top:9px;inset-inline-start:9px;font-size:10.5px;font-weight:900;color:#c9a24a;background:#fff;border:1px solid #eee4cf;border-radius:7px;padding:1px 7px}' +
+    '.lv-c{background:#e9f4ec;color:#235c33;border-color:#9ac2a3}.lv-pro{background:#f6e9e6;color:#7e3322;border-color:#d7a492}.lv-d{background:#f8efd6;color:#7a5908;border-color:#dcc078}.lv-p{background:#f1e6d7;color:#6c4a24;border-color:#cba87e}.lv-none{background:#eef1f6;color:#51607a;border-color:#c4ccd6}' +
+    /* band */
+    '.mdr-band{position:relative;overflow:hidden;background:linear-gradient(120deg,#13233b,#223f66);border-radius:18px;padding:19px 24px;color:#fff}.mdr-band .mdr-ch{color:#fff}.mdr-band .mdr-ci{background:rgba(201,162,74,.16);color:#e6c87e}' +
+    '.mdr-st{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;position:relative;z-index:1}@media(max-width:760px){.mdr-st{grid-template-columns:1fr 1fr}.mdr-gz{grid-template-columns:1fr 1fr}}.mdr-bt{background:rgba(255,255,255,.06);border:1px solid rgba(201,162,74,.22);border-radius:13px;padding:14px 12px;text-align:center}.mdr-bt b{font-size:25px;font-weight:900;color:#e6c87e;display:block}.mdr-bt span{font-size:11.5px;color:#c7d3e4;font-weight:700}' +
+    /* bars */
+    '.mdr-bars{display:flex;align-items:flex-end;gap:16px;height:188px;padding:8px 4px 0;border-bottom:2px solid #eef1f6}.mdr-bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}.mdr-bar .v{font-weight:900;font-size:12.5px;color:#15273f}.mdr-col{width:60%;min-height:4px;border-radius:8px 8px 0 0;background:linear-gradient(180deg,#e6c87e,#c9a24a)}.mdr-bar.lead .mdr-col{background:linear-gradient(180deg,#2f7d53,#235c33)}.mdr-bar small{font-size:10.5px;color:#6f7c90;font-weight:800;text-align:center;line-height:1.3}.mdr-lg{display:flex;gap:16px;font-size:12px;color:#6f7c90;font-weight:700;margin-top:10px}.mdr-lg i{width:11px;height:11px;border-radius:3px;display:inline-block;margin-inline-end:5px;vertical-align:-1px}' +
+    /* donut + insights */
+    '.mdr-dwrap{display:grid;grid-template-columns:200px 1fr;gap:20px;align-items:center}@media(max-width:700px){.mdr-dwrap{grid-template-columns:1fr}}' +
+    '.mdr-donut{width:184px;height:184px;border-radius:50%;position:relative;margin:0 auto}.mdr-donut::after{content:"";position:absolute;inset:30px;background:#fff;border-radius:50%}.mdr-dc{position:absolute;inset:0;display:grid;place-items:center;z-index:1;text-align:center}.mdr-dc b{font-size:30px;font-weight:900;color:#15273f;line-height:1}.mdr-dc span{font-size:11px;color:#6f7c90;font-weight:800}' +
+    '.mdr-dl{display:flex;flex-direction:column;gap:9px}.mdr-dlr{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:800;color:#15273f}.mdr-dlr i{width:13px;height:13px;border-radius:4px;flex:none}.mdr-dlr .pc{margin-inline-start:auto;color:#6f7c90;font-weight:800;font-size:12.5px}' +
+    '.mdr-ins{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}@media(max-width:760px){.mdr-ins{grid-template-columns:1fr 1fr}}.mdr-inscard{border:1px solid #eef1f6;border-radius:14px;padding:14px;background:#fbfcfe;position:relative;overflow:hidden}.mdr-inscard .ico{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:#fff;font-size:15px;margin-bottom:9px}.mdr-inscard .lb{font-size:11.5px;color:#6f7c90;font-weight:800}.mdr-inscard .vl{font-size:14.5px;font-weight:900;color:#15273f;margin-top:2px}.mdr-inscard .sm{font-size:11px;color:#8a93a3;font-weight:700;margin-top:2px}' +
+    /* tables */
+    '.mdr-tw{overflow:auto;border-radius:12px}.mdr-tbl{width:100%;border-collapse:collapse;font-size:13.5px}.mdr-tbl th{color:#15273f;font-weight:800;font-size:12.5px;padding:11px 10px;text-align:center;border-bottom:2px solid #f0e6cf;background:#fff;position:sticky;top:0}.mdr-tbl td{padding:11px 10px;text-align:center;border-bottom:1px solid #eef1f6;color:#39455a}.mdr-tbl td.nm{text-align:start;font-weight:800;color:#15273f}.mdr-tbl th.s{text-align:start}.mdr-tbl tbody tr{cursor:pointer;transition:background .15s}.mdr-tbl tbody tr:hover td{background:#f8fafd}.mdr-rk{font-weight:900;color:#c9a24a;font-size:15px}' +
+    '.mdr-rep{all:unset;cursor:pointer;width:30px;height:30px;border-radius:8px;display:inline-grid;place-items:center;color:#15273f;background:#f3f6fb;border:1px solid #e3e9f2;font-size:12px}.mdr-rep:hover{background:#c9a24a;color:#fff}' +
+    '.mdr-note{font-size:12px;color:#6f7c90;display:flex;align-items:center;gap:7px;line-height:1.7;font-weight:600;margin-top:11px}.mdr-note i{color:#c9a24a}' +
+    '.mdr-ava-img{width:30px;height:30px;border-radius:50%;object-fit:cover;vertical-align:-10px;margin-inline-end:7px;border:1px solid #e3e9f2}.ini{display:inline-grid;place-items:center;background:#15273f;color:#e6c87e;font-weight:900}' +
+    /* ranks grid */
+    '.mdr-sbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:4px}.mdr-sbar input{flex:1;min-width:180px;border:1px solid #e5e9f2;border-radius:12px;padding:10px 15px;font:inherit;font-size:14px;background:#fff}' +
+    '.mdr-sec{margin-top:0}.mdr-sech{display:flex;align-items:center;gap:11px;margin:0 0 13px;font-size:15px;font-weight:900;color:#15273f}.mdr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:12px}' +
+    '.mdr-m{border-radius:16px;padding:15px;position:relative;overflow:hidden;cursor:pointer;background:#faf9f4;border:1px solid #eee4cf;transition:transform .18s,box-shadow .18s}.mdr-m:hover{transform:translateY(-3px);box-shadow:0 18px 34px -22px rgba(16,30,54,.5)}.mdr-m .mtop{display:flex;align-items:center;gap:11px}.mdr-m .mav{width:46px;height:46px;border-radius:50%;object-fit:cover;flex:none;border:2px solid #fff;box-shadow:0 2px 6px rgba(16,30,54,.15)}.mdr-m .mav.ini{background:#15273f;color:#e6c87e;font:900 18px Tajawal,sans-serif}.mdr-m .mtop b{font-size:14px;font-weight:900;color:#15273f;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mdr-m .mtop small{font-size:11px;color:#6f7c90;font-weight:700}.mdr-m .mnums{display:flex;gap:7px;margin-top:12px}.mdr-m .mnums div{flex:1;text-align:center;background:#fff;border:1px solid #eef1f6;border-radius:10px;padding:7px 2px}.mdr-m .mnums b{font:900 15px Tajawal,sans-serif;display:block;color:#15273f}.mdr-m .mnums small{font-size:9.5px;color:#6f7c90;font-weight:700}' +
+    /* profile */
+    '.mdr-back{display:inline-flex;align-items:center;gap:8px;color:#6f7c90;font-weight:800;font-size:13px;cursor:pointer;margin-bottom:4px}.mdr-back:hover{color:#15273f}' +
+    '.mdr-ph{position:relative;overflow:hidden;background:linear-gradient(120deg,#13233b,#24456f);border-radius:20px;padding:24px 26px;color:#fff;display:flex;align-items:center;gap:20px;box-shadow:0 20px 44px -28px rgba(16,30,54,.8);flex-wrap:wrap}' +
+    '.mdr-ava{width:98px;height:98px;border-radius:24px;object-fit:cover;flex:none;position:relative;z-index:1;border:3px solid rgba(255,255,255,.3)}.mdr-ava.ini{font-size:38px;color:#2a2008;background:conic-gradient(from 140deg,#e9c877,#b8914a,#f0dca0,#a87f3c,#e9c877)}' +
+    '.mdr-pid{position:relative;z-index:1;flex:1;min-width:220px}.mdr-plvl{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;padding:4px 13px;border-radius:999px;background:rgba(201,162,74,.18);color:#e6c87e;border:1px solid rgba(201,162,74,.45);margin-bottom:6px}.mdr-pid h1{font-size:27px;font-weight:900;margin:2px 0 5px}.mdr-pmeta{display:flex;gap:15px;flex-wrap:wrap;color:#c7d3e4;font-size:12.5px;font-weight:600}.mdr-pmeta b{color:#fff}' +
+    '.mdr-gring{position:relative;z-index:1;width:112px;height:112px;flex:none}.mdr-gring svg{transform:rotate(-90deg)}.mdr-gring .c{position:absolute;inset:0;display:grid;place-items:center;text-align:center}.mdr-gring .c b{font-size:25px;font-weight:900;color:#e6c87e;line-height:1}.mdr-gring .c small{font-size:10px;color:#c7d3e4;font-weight:800}' +
+    '.mdr-pk{position:relative;z-index:1;display:flex;gap:9px;flex:none}.mdr-pk .k{background:rgba(0,0,0,.24);border:1px solid rgba(201,162,74,.25);border-radius:13px;padding:11px 15px;text-align:center;min-width:74px}.mdr-pk .k b{display:block;font-size:21px;font-weight:900;color:#e6c87e}.mdr-pk .k span{font-size:10.5px;color:#c7d3e4;font-weight:700}' +
+    '.mdr-grid2{display:grid;grid-template-columns:1fr 1fr;gap:15px}@media(max-width:760px){.mdr-grid2{grid-template-columns:1fr}}' +
+    '.mdr-inf{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}@media(max-width:520px){.mdr-inf{grid-template-columns:1fr}}.mdr-inf .r{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #eef1f6}.mdr-inf .r>i{width:30px;height:30px;border-radius:8px;background:#f5f8fc;color:#20406c;display:grid;place-items:center;font-size:13px;flex:none}.mdr-inf .r .l{font-size:11.5px;color:#6f7c90;font-weight:700;display:block}.mdr-inf .r .v{font-size:13.5px;color:#15273f;font-weight:800;word-break:break-word}' +
+    '.mdr-btns{display:flex;gap:9px;flex-wrap:wrap;margin-top:4px}.mdr-bn{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:13.5px;padding:11px 20px;border-radius:12px;border:1px solid #e7ecf3;background:#fff;color:#15273f;cursor:pointer}.mdr-bn.pri{background:#15273f;color:#fff;border-color:#15273f}.mdr-bn.pri i{color:#e6c87e}.mdr-bn.del{color:#c0392b;border-color:#f0d0cc}.mdr-bn.del:hover{background:#fdecec}' +
+    '.mdr-empty{background:#fff;border:1px solid #e7ecf3;border-radius:18px;padding:40px;text-align:center;color:#6f7c90;font-weight:700}';
   document.head.appendChild(st);
 }
-function mdrHead() {
+function mdrRing_(pct, col, sz, sw) {
+  sz = sz || 92; sw = sw || 9; var r = (sz / 2) - sw; var C = 2 * Math.PI * r; var dash = (Math.max(0, Math.min(100, pct)) / 100 * C).toFixed(1) + ' ' + C.toFixed(1);
+  var c = (sz / 2);
+  return '<svg width="' + sz + '" height="' + sz + '" viewBox="0 0 ' + sz + ' ' + sz + '"><circle cx="' + c + '" cy="' + c + '" r="' + r + '" fill="none" stroke="#eef1f6" stroke-width="' + sw + '"/><circle cx="' + c + '" cy="' + c + '" r="' + r + '" fill="none" stroke="' + col + '" stroke-width="' + sw + '" stroke-linecap="round" stroke-dasharray="' + dash + '"/></svg>';
+}
+function mdrHero(data) {
+  var cls = data.filter(function (x) { return x.tier !== 'none'; }).length, tot = data.length || 1, pct = Math.round(cls / tot * 100);
+  return '<div class="mdr-hero"><div class="mdr-pat"></div>' +
+    '<div class="mdr-kpi"><b>' + pmNum(pct) + '٪</b><span>' + pmNum(cls) + ' ' + T('مصنّفون من') + ' ' + pmNum(tot) + '</span></div>' +
+    '<div class="mdr-ht"><span class="mdr-eb">' + T('بنيان العالمية') + ' · ' + T('قياس التميّز') + '</span><h1>' + T('المدربون والمدربات') + '</h1><p>' + T('تقدير المدربين حسب الأثر: البرامج والدورات والمتدربون. الدرجة = (البرامج × ١٠) + (الدورات × ٣) + (المتدربون × ٠٫٢)، والمستوى الرسمي يُحتسب من عدد الدورات.') + '</p></div>' +
+    '<div class="mdr-logo"><img src="assets/logos/bonyan-training.png" alt="" onerror="this.style.display=\'none\';this.parentNode.innerHTML=\'<i class=\\\'fa-solid fa-chalkboard-user\\\'></i>\'"></div></div>';
+}
+function mdrTabs(data) {
   var tabs = [['board', 'لوحة المدربين', 'fa-trophy'], ['stats', 'الإحصائيات', 'fa-chart-column'], ['ranks', 'التصنيف والتميّز', 'fa-medal']];
-  return '<header class="tghd"><div class="tghd-b"><img src="assets/logos/bonyan-training.png" alt="" class="tglogo"><div><span class="tgeb">' + T('بنيان العالمية') + ' · ' + T('المدربون') + '</span><h1>' + T('المدربون والمدربات') + '</h1><p>' + T('لوحة التميّز والتصنيف — تقدير المدربين حسب البرامج والدورات والمتدربين') + '</p></div></div>' +
-    '<nav class="tgtabs">' + tabs.map(function (t) { return '<a class="tgtab' + (MDR.sub === t[0] ? ' on' : '') + '" data-mdr="' + t[0] + '"><i class="fa-solid ' + t[2] + '"></i> ' + T(t[1]) + '</a>'; }).join('') + '</nav></header>';
+  var cnt = { c: 0, pro: 0, d: 0, p: 0, none: 0 }; data.forEach(function (x) { cnt[x.tier]++; });
+  var tabsH = tabs.map(function (t) { return '<div class="mdr-chip' + (MDR.sub === t[0] && !MDR.pid ? ' on' : '') + '" data-mdr="' + t[0] + '"><i class="fa-solid ' + t[2] + '"></i> ' + T(t[1]) + '</div>'; }).join('');
+  var chipsH = ['c', 'pro', 'd', 'p'].map(function (tr) { var m = MDR_TIERS[tr]; return '<div class="mdr-chip" style="--c:' + m.rc + '" data-mdrtier="' + tr + '"><i class="fa-solid ' + m.ic + '"></i> ' + T(m.k) + ' <span class="n">' + pmNum(cnt[tr]) + '</span></div>'; }).join('');
+  return '<div class="mdr-chips">' + tabsH + '<span class="mdr-sp"></span>' + chipsH + '</div>';
+}
+function mdrToolbar() {
+  if (!mdrCanEd()) return '';
+  return '<div class="mdr-tools"><button type="button" class="mdr-tb pri" data-pmtradd="1"><i class="fa-solid fa-user-plus"></i> ' + T('إضافة مدرب') + '</button>' +
+    '<button type="button" class="mdr-tb" data-pmtrimp="1"><i class="fa-solid fa-file-excel"></i> ' + T('استيراد') + '</button>' +
+    '<button type="button" class="mdr-tb" data-pmtrreport="1"><i class="fa-solid fa-file-pdf"></i> ' + T('تقرير عام') + '</button>' +
+    '<button type="button" class="mdr-tb" data-pmtrcards="1"><i class="fa-solid fa-id-card"></i> ' + T('بطاقات') + '</button>' +
+    '<button type="button" class="mdr-tb" data-pmtrcert="1"><i class="fa-solid fa-award"></i> ' + T('تقدير') + '</button></div>';
 }
 function mdrView() {
   mdrCss(); pmTrCss_();
   if (!TG.pm) { setTimeout(pmLoad, 10); return '<div class="tgload"><div class="tgspin"></div><b>' + T('جارٍ تحميل البيانات…') + '</b></div>'; }
   if (!TG.pmtr) { setTimeout(pmTrLoad, 10); return '<div class="tgload"><div class="tgspin"></div><b>' + T('جارٍ تحميل المدربين…') + '</b></div>'; }
-  if (TG.pmtr.error) return '<div class="tgw mdrw">' + mdrHead() + '<div class="mdr-body"><div class="card empty">' + esc(TG.pmtr.error) + '</div></div></div>';
+  if (TG.pmtr.error) return '<div class="tgw mdrw"><div class="mdr-body"><div class="mdr-empty">' + esc(TG.pmtr.error) + '</div></div></div>';
   var data = mdrData();
-  if (!data.length) return '<div class="tgw mdrw">' + mdrHead() + '<div class="mdr-body"><div class="card empty"><i class="fa-solid fa-chalkboard-user" style="font-size:26px;color:#c9a15a;margin-bottom:8px"></i><br>' + T('لا مدربون مسجّلون بعد.') + '</div></div></div>';
+  if (MDR.pid) return '<div class="tgw mdrw"><div class="mdr-body">' + mdrProfile(MDR.pid, data) + '</div></div>';
+  if (!data.length) return '<div class="tgw mdrw"><div class="mdr-body">' + mdrHero(data) + mdrTabs(data) + mdrToolbar() + '<div class="mdr-empty"><i class="fa-solid fa-chalkboard-user" style="font-size:26px;color:#c9a24a"></i><br>' + T('لا مدربون مسجّلون بعد.') + (mdrCanEd() ? '<br>' + T('اضغط «إضافة مدرب» للبدء.') : '') + '</div></div></div>';
   var body = MDR.sub === 'stats' ? mdrStats(data) : MDR.sub === 'ranks' ? mdrRanks(data) : mdrBoard(data);
-  return '<div class="tgw mdrw">' + mdrHead() + '<div class="mdr-body">' + body + '</div></div>';
+  return '<div class="tgw mdrw"><div class="mdr-body">' + mdrHero(data) + mdrTabs(data) + body + '</div></div>';
 }
-function mdrPod_(x, pos) {
-  var m = MDR_TIERS[x.tier], crown = pos === 1 ? '<i class="fa-solid fa-crown crown"></i>' : '';
-  return '<div class="mdr-pod' + (pos === 1 ? ' first' : '') + '" data-mdrt="' + esc(x.id) + '" style="background:' + m.grad + '">' + crown + '<span class="rk">#' + pmNum(x.rank) + '</span><div class="av">' + esc(mdrInit_(x.name)) + '</div><h4>' + esc(x.name) + '</h4><div class="mt">' + mdrBadge(x.tier) + '</div><div class="sc">' + pmNum(x.score) + ' <small>' + T('نقطة') + '</small></div><div class="nums">' + pmNum(x.progs) + ' ' + T('برنامج') + ' · ' + pmNum(x.courses) + ' ' + T('دورة') + ' · ' + pmNum(x.trainees) + ' ' + T('متدرب') + '</div></div>';
+function mdrGauge(x, max) {
+  var m = MDR_TIERS[x.tier], pct = max ? Math.round(x.score / max * 100) : 0;
+  return '<div class="mdr-g' + (x.rank === 1 ? ' top' : '') + '" data-mdrt="' + esc(x.id) + '"><span class="mdr-grank">#' + pmNum(x.rank) + '</span>' +
+    '<div class="mdr-ring">' + mdrRing_(pct, m.rc, 92, 9) + '<div class="mdr-ctr">' + pmNum(x.score) + '<small>' + T('نقطة') + '</small></div></div>' +
+    '<h4>' + esc(x.name) + '</h4><span class="mdr-glv lv-' + x.tier + '"><i class="fa-solid ' + m.ic + '"></i> ' + T(m.k) + '</span>' +
+    '<span class="mdr-gsub">' + pmNum(x.courses) + ' ' + T('دورة') + ' · ' + pmNum(x.progs) + ' ' + T('برنامج') + '</span></div>';
+}
+function mdrBand(data) {
+  var tp = 0, tc = 0, tt = 0; data.forEach(function (x) { tp += x.progs; tc += x.courses; tt += x.trainees; });
+  var tiles = [[data.length, 'عدد المدربين'], [tp, 'إجمالي البرامج'], [tc, 'إجمالي الدورات'], [tt, 'إجمالي المتدربين']];
+  return '<div class="mdr-band"><div class="mdr-pat"></div><div class="mdr-ch"><div class="mdr-ci"><i class="fa-solid fa-layer-group"></i></div> ' + T('ملخّص التميّز العام') + '</div><div class="mdr-st">' +
+    tiles.map(function (t) { return '<div class="mdr-bt"><b>' + pmNum(t[0]) + '</b><span>' + T(t[1]) + '</span></div>'; }).join('') + '</div></div>';
+}
+function mdrBars(data) {
+  var top = data.slice(0, 8), max = top.length ? top[0].score : 1;
+  var bars = top.map(function (x, i) { var h = max ? Math.max(4, Math.round(x.score / max * 100)) : 4; return '<div class="mdr-bar' + (i === 0 ? ' lead' : '') + '"><span class="v">' + pmNum(x.score) + '</span><div class="mdr-col" style="height:' + h + '%"></div><small>' + esc(x.name) + '</small></div>'; }).join('');
+  return '<div class="mdr-card"><div class="mdr-ch"><div class="mdr-ci"><i class="fa-solid fa-chart-simple"></i></div> ' + T('درجات المدربين') + '</div><div class="mdr-bars">' + bars + '</div><div class="mdr-lg"><span><i style="background:#2f7d53"></i> ' + T('الأعلى') + '</span><span><i style="background:#c9a24a"></i> ' + T('الدرجة') + '</span></div></div>';
+}
+function mdrTable(data) {
+  var rows = data.map(function (x) { return '<tr data-mdrt="' + esc(x.id) + '"><td class="mdr-rk">' + pmNum(x.rank) + '</td><td class="nm">' + mdrAva_(x, 'mdr-ava-img') + esc(x.name) + '</td><td>' + mdrBadge(x.tier) + '</td><td>' + pmNum(x.progs) + '</td><td>' + pmNum(x.courses) + '</td><td>' + pmNum(x.trainees) + '</td><td><b>' + pmNum(x.score) + '</b></td><td><button class="mdr-rep" data-pmtrrep1="' + esc(x.id) + '" title="' + T('تقرير المدرب') + '"><i class="fa-solid fa-file-pdf"></i></button></td></tr>'; }).join('');
+  return '<div class="mdr-card"><div class="mdr-ch"><div class="mdr-ci"><i class="fa-solid fa-ranking-star"></i></div> ' + T('ترتيب المدربين') + '<span class="mdr-cnt">' + pmNum(data.length) + ' ' + T('مدرب') + '</span></div>' +
+    '<div class="mdr-tw"><table class="mdr-tbl"><thead><tr><th>#</th><th class="s">' + T('المدرب') + '</th><th>' + T('الرتبة') + '</th><th>' + T('البرامج') + '</th><th>' + T('الدورات') + '</th><th>' + T('المتدربون') + '</th><th>' + T('الدرجة') + '</th><th>' + T('تقرير') + '</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+    '<p class="mdr-note"><i class="fa-solid fa-circle-info"></i> ' + T('الدرجة = (البرامج × ١٠) + (الدورات × ٣) + (المتدربون × ٠٫٢). اضغط أي مدرب لفتح صفحته.') + '</p></div>';
 }
 function mdrBoard(data) {
-  var top3 = data.slice(0, 3), order = [1, 0, 2];
-  var podium = '<div class="mdr-podium">' + order.map(function (i) { return data[i] ? mdrPod_(data[i], data[i].rank) : ''; }).join('') + '</div>';
-  var rows = data.map(function (x) { return '<tr data-mdrt="' + esc(x.id) + '" style="cursor:pointer"><td class="mdr-rk">' + pmNum(x.rank) + '</td><td class="nm">' + esc(x.name) + '</td><td>' + mdrBadge(x.tier) + '</td><td>' + pmNum(x.progs) + '</td><td>' + pmNum(x.courses) + '</td><td>' + pmNum(x.trainees) + '</td><td><b>' + pmNum(x.score) + '</b></td><td><button class="mdr-rep" data-mdrrep="' + esc(x.id) + '" title="' + T('تقرير المدرب') + '"><i class="fa-solid fa-file-pdf"></i></button></td></tr>'; }).join('');
-  var table = '<div class="mdr-card"><h3><i class="fa-solid fa-ranking-star" style="color:#c9a15a"></i> ' + T('ترتيب المدربين') + '</h3><div class="mdr-tw"><table class="mdr-tbl"><thead><tr><th>#</th><th style="text-align:start">' + T('المدرب') + '</th><th>' + T('الرتبة') + '</th><th>' + T('البرامج') + '</th><th>' + T('الدورات') + '</th><th>' + T('المتدربون') + '</th><th>' + T('الدرجة') + '</th><th>' + T('تقرير') + '</th></tr></thead><tbody>' + rows + '</tbody></table></div><p class="mdr-note" style="margin-top:10px"><i class="fa-solid fa-circle-info"></i> ' + T('الدرجة = (البرامج × 10) + (الدورات × 3) + (المتدربون × 0.2). اضغط أي مدرب لعرض بطاقته.') + '</p></div>';
-  return (top3.length ? podium : '') + table;
+  var top6 = data.slice(0, 6), max = data.length ? data[0].score : 1;
+  var gz = '<div class="mdr-card"><div class="mdr-ch"><div class="mdr-ci"><i class="fa-solid fa-gauge-high"></i></div> ' + T('مؤشّر التميّز لأعلى المدربين') + '</div><div class="mdr-gz">' + top6.map(function (x) { return mdrGauge(x, max); }).join('') + '</div><p class="mdr-note"><i class="fa-solid fa-circle-info"></i> ' + T('الحلقة = درجة المدرب نسبةً إلى الأعلى. الرقم داخل الحلقة = الدرجة.') + '</p></div>';
+  var tb = mdrToolbar();
+  return (tb ? '<div style="margin-bottom:2px">' + tb + '</div>' : '') + gz + mdrBand(data) + mdrBars(data) + mdrTable(data);
+}
+function mdrDonut(data) {
+  var cnt = { c: 0, pro: 0, d: 0, p: 0, none: 0 }; data.forEach(function (x) { cnt[x.tier]++; });
+  var tot = data.length || 1, acc = 0, segs = [];
+  MDR_ORDER.forEach(function (tr) { var v = cnt[tr]; if (!v) return; var a = acc / tot * 360, b = (acc + v) / tot * 360; segs.push(MDR_TIERS[tr].rc + ' ' + a.toFixed(1) + 'deg ' + b.toFixed(1) + 'deg'); acc += v; });
+  var bg = segs.length ? 'conic-gradient(' + segs.join(',') + ')' : '#eef1f6';
+  var legend = MDR_ORDER.filter(function (tr) { return cnt[tr]; }).map(function (tr) { var m = MDR_TIERS[tr]; return '<div class="mdr-dlr"><i style="background:' + m.rc + '"></i> ' + T(m.k) + ' <span class="pc">' + pmNum(cnt[tr]) + ' · ' + pmNum(Math.round(cnt[tr] / tot * 100)) + '٪</span></div>'; }).join('');
+  return '<div class="mdr-card"><div class="mdr-ch"><div class="mdr-ci"><i class="fa-solid fa-chart-pie"></i></div> ' + T('توزيع المستويات') + '</div><div class="mdr-dwrap"><div class="mdr-donut" style="background:' + bg + '"><div class="mdr-dc"><b>' + pmNum(data.length) + '</b><span>' + T('مدرب') + '</span></div></div><div class="mdr-dl">' + legend + '</div></div></div>';
 }
 function mdrStats(data) {
-  var byTier = { c: 0, pro: 0, d: 0, p: 0, none: 0 }, active = 0, tc = 0, tp = 0, tt = 0;
-  data.forEach(function (x) { byTier[x.tier]++; if (x.status === 'نشط') active++; tp += x.progs; tc += x.courses; tt += x.trainees; });
-  var tiles = [[data.length, 'مدرب', 'fa-chalkboard-user', 'linear-gradient(160deg,#2f5d8f,#1d3c63)'], [active, 'نشط', 'fa-user-check', 'linear-gradient(160deg,#1f8a5b,#146c45)'], [tc, 'دورة مقدَّمة', 'fa-book-open', 'linear-gradient(160deg,#c9871f,#9a6410)'], [tp, 'مشاركة ببرنامج', 'fa-layer-group', 'linear-gradient(160deg,#7c3aed,#5b21b6)']];
-  var genTiles = '<div class="mdr-tiles">' + tiles.map(function (k) { return '<div class="mdr-tile" style="background:' + k[3] + '"><b>' + pmNum(k[0]) + '</b><small>' + T(k[1]) + '</small><i class="fa-solid ' + k[2] + ' bg"></i></div>'; }).join('') + '</div>';
-  var tierTiles = '<div class="mdr-tiles" style="margin-top:12px">' + MDR_ORDER.map(function (tr) { var m = MDR_TIERS[tr]; return '<div class="mdr-tile" style="background:' + m.grad + '"><b>' + pmNum(byTier[tr]) + '</b><small>' + T(m.n) + '</small><i class="fa-solid ' + m.ic + ' bg"></i></div>'; }).join('') + '</div>';
-  var rows = data.map(function (x) { return '<tr data-mdrt="' + esc(x.id) + '" style="cursor:pointer"><td class="mdr-rk">' + pmNum(x.rank) + '</td><td class="nm">' + esc(x.name) + '</td><td>' + (esc(x.ttype) || '—') + '</td><td>' + mdrBadge(x.tier) + '</td><td>' + pmNum(x.progs) + '</td><td>' + pmNum(x.courses) + '</td><td>' + pmNum(x.trainees) + '</td><td><b>' + pmNum(x.score) + '</b></td></tr>'; }).join('');
-  var table = '<div class="mdr-card"><h3><i class="fa-solid fa-table-list" style="color:#c9a15a"></i> ' + T('الإحصاء الخاص لكل مدرب') + '</h3><div class="mdr-tw" style="max-height:52vh"><table class="mdr-tbl"><thead><tr><th>#</th><th style="text-align:start">' + T('المدرب') + '</th><th>' + T('التصنيف') + '</th><th>' + T('الرتبة') + '</th><th>' + T('البرامج') + '</th><th>' + T('الدورات') + '</th><th>' + T('المتدربون') + '</th><th>' + T('الدرجة') + '</th></tr></thead><tbody>' + rows + '</tbody></table></div></div>';
-  return '<div class="mdr-card"><h3><i class="fa-solid fa-chart-pie" style="color:#c9a15a"></i> ' + T('الإحصاء العام') + '</h3>' + genTiles + tierTiles + '</div>' + mdrCriteria() + table;
+  var tp = 0, tc = 0, tt = 0, active = 0; data.forEach(function (x) { tp += x.progs; tc += x.courses; tt += x.trainees; if (x.status === 'نشط') active++; });
+  var byC = data.slice().sort(function (a, b) { return b.courses - a.courses; })[0] || {};
+  var byP = data.slice().sort(function (a, b) { return b.progs - a.progs; })[0] || {};
+  var byT = data.slice().sort(function (a, b) { return b.trainees - a.trainees; })[0] || {};
+  var top = data[0] || {};
+  var ins = [['الأعلى تميّزًا', top.name, pmNum(top.score || 0) + ' ' + T('نقطة'), 'fa-trophy', '#c9a24a'],
+  ['الأكثر دورات', byC.name, pmNum(byC.courses || 0) + ' ' + T('دورة'), 'fa-book-open', '#2f7d53'],
+  ['الأكثر برامج', byP.name, pmNum(byP.progs || 0) + ' ' + T('برنامج'), 'fa-layer-group', '#20406c'],
+  ['الأكثر متدربين', byT.name, pmNum(byT.trainees || 0) + ' ' + T('متدرب'), 'fa-users', '#8a5a24']];
+  var insH = '<div class="mdr-card"><div class="mdr-ch"><div class="mdr-ci"><i class="fa-solid fa-lightbulb"></i></div> ' + T('رؤى بارزة') + '</div><div class="mdr-ins">' +
+    ins.map(function (k) { return '<div class="mdr-inscard"><div class="ico" style="background:' + k[4] + '"><i class="fa-solid ' + k[3] + '"></i></div><div class="lb">' + T(k[0]) + '</div><div class="vl">' + (esc(k[1]) || '—') + '</div><div class="sm">' + k[2] + '</div></div>'; }).join('') + '</div></div>';
+  var tilesArr = [[data.length, 'مدرب', 'fa-chalkboard-user', '#20406c'], [active, 'نشط', 'fa-user-check', '#1f8a5b'], [tc, 'دورة', 'fa-book-open', '#c9871f'], [tp, 'برنامج', 'fa-layer-group', '#8a5a24']];
+  var tilesH = '<div class="mdr-card"><div class="mdr-ch"><div class="mdr-ci"><i class="fa-solid fa-gauge"></i></div> ' + T('الإحصاء العام') + '</div><div class="mdr-st" style="grid-template-columns:repeat(4,1fr)">' +
+    tilesArr.map(function (k) { return '<div class="mdr-bt" style="background:#faf9f4;border-color:#eee4cf"><b style="color:#15273f">' + pmNum(k[0]) + '</b><span style="color:#6f7c90"><i class="fa-solid ' + k[2] + '" style="color:' + k[3] + ';margin-inline-end:5px"></i>' + T(k[1]) + '</span></div>'; }).join('') + '</div></div>';
+  var tRows = data.map(function (x) { return '<tr data-mdrt="' + esc(x.id) + '"><td class="mdr-rk">' + pmNum(x.rank) + '</td><td class="nm">' + mdrAva_(x, 'mdr-ava-img') + esc(x.name) + '</td><td>' + (esc(x.ttype) || '—') + '</td><td>' + mdrBadge(x.tier) + '</td><td>' + pmNum(x.progs) + '</td><td>' + pmNum(x.courses) + '</td><td>' + pmNum(x.trainees) + '</td><td><b>' + pmNum(x.score) + '</b></td></tr>'; }).join('');
+  var tableH = '<div class="mdr-card"><div class="mdr-ch"><div class="mdr-ci"><i class="fa-solid fa-table-list"></i></div> ' + T('الإحصاء الخاص لكل مدرب') + '</div><div class="mdr-tw" style="max-height:56vh"><table class="mdr-tbl"><thead><tr><th>#</th><th class="s">' + T('المدرب') + '</th><th>' + T('التصنيف المهني') + '</th><th>' + T('الرتبة') + '</th><th>' + T('البرامج') + '</th><th>' + T('الدورات') + '</th><th>' + T('المتدربون') + '</th><th>' + T('الدرجة') + '</th></tr></thead><tbody>' + tRows + '</tbody></table></div></div>';
+  return tilesH + '<div class="mdr-grid2">' + mdrDonut(data) + insH + '</div>' + mdrCriteria() + tableH;
 }
-/* جدول معايير التصنيف النوعي الرسمي في بنيان */
 function mdrCriteria() {
-  var rows = ['c', 'pro', 'd', 'p'].map(function (tr) { var m = MDR_TIERS[tr]; return '<tr><td class="nm">' + mdrBadge(tr) + '</td><td>' + m.lo + ' – ' + m.hi + '</td><td>' + m.ev + '</td></tr>'; }).join('');
-  return '<div class="mdr-card"><h3><i class="fa-solid fa-clipboard-check" style="color:#c9a15a"></i> ' + T('معايير التصنيف النوعي الرسمي في بنيان') + '</h3>' +
-    '<div class="mdr-tw"><table class="mdr-tbl"><thead><tr><th style="text-align:start">' + T('المستوى') + '</th><th>' + T('الدورات مع بنيان / العام') + '</th><th>' + T('تقييم المتدربين') + '</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
-    '<p class="mdr-note" style="margin-top:10px"><i class="fa-solid fa-circle-info"></i> ' + T('يُشترط مع كل مستوى: بكالوريوس + دورة تدريب مدربين + حضور ملتقى الخبراء؛ ويُضاف للاستشاري التفاعل مع برامج بنيان الإثرائية والتكريمية. المستوى يُحتسب آليًّا من عدد الدورات؛ وتقييم المتدربين والمؤهلات تُدخَل لاحقًا لاكتمال التصنيف الرسمي.') + '</p></div>';
+  var rows = ['c', 'pro', 'd', 'p'].map(function (tr) { var m = MDR_TIERS[tr]; return '<tr><td class="nm">' + mdrBadge(tr) + '</td><td>' + pmNum(m.lo) + ' – ' + pmNum(m.hi) + '</td><td>' + m.ev + '</td></tr>'; }).join('');
+  return '<div class="mdr-card"><div class="mdr-ch"><div class="mdr-ci"><i class="fa-solid fa-clipboard-check"></i></div> ' + T('معايير التصنيف النوعي الرسمي في بنيان') + '</div>' +
+    '<div class="mdr-tw"><table class="mdr-tbl"><thead><tr><th class="s">' + T('المستوى') + '</th><th>' + T('الدورات مع بنيان / العام') + '</th><th>' + T('تقييم المتدربين') + '</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+    '<p class="mdr-note"><i class="fa-solid fa-circle-info"></i> ' + T('يُشترط مع كل مستوى: بكالوريوس + دورة تدريب مدربين + حضور ملتقى الخبراء؛ ويُضاف للاستشاري التفاعل مع برامج بنيان الإثرائية. المستوى يُحتسب آليًّا من عدد الدورات؛ وتقييم المتدربين والمؤهلات تُدخَل لاكتمال التصنيف الرسمي.') + '</p></div>';
 }
 function mdrRanks(data) {
   var q = (MDR.q || '').trim(), tf = MDR.tier;
-  var bar = '<div class="mdr-bar"><input id="mdrQ" placeholder="' + T('ابحث باسم المدرب…') + '" value="' + esc(MDR.q || '') + '"><button class="mdr-chip' + (!tf ? ' on' : '') + '" data-mdrtier="">' + T('الكل') + '</button>' + MDR_ORDER.map(function (tr) { return '<button class="mdr-chip' + (tf === tr ? ' on' : '') + '" data-mdrtier="' + tr + '">' + T(MDR_TIERS[tr].n) + '</button>'; }).join('') + '</div>';
+  var chips = '<div class="mdr-chip' + (!tf ? ' on' : '') + '" data-mdrtier="" style="--c:#15273f">' + T('الكل') + '</div>' + MDR_ORDER.map(function (tr) { var m = MDR_TIERS[tr]; return '<div class="mdr-chip' + (tf === tr ? ' on' : '') + '" style="--c:' + m.rc + '" data-mdrtier="' + tr + '"><i class="fa-solid ' + m.ic + '"></i> ' + T(m.k) + '</div>'; }).join('');
+  var bar = '<div class="mdr-sbar"><input id="mdrQ" placeholder="' + T('ابحث باسم المدرب…') + '" value="' + esc(MDR.q || '') + '">' + chips + '</div>';
   var secs = MDR_ORDER.filter(function (tr) { return !tf || tf === tr; }).map(function (tr) {
     var m = MDR_TIERS[tr], mem = data.filter(function (x) { return x.tier === tr && (!q || pmTrNorm_(x.name).indexOf(pmTrNorm_(q)) >= 0); });
     if (!mem.length) return '';
-    var cards = mem.map(function (x) { return '<div class="mdr-m" data-mdrt="' + esc(x.id) + '" style="background:' + m.grad + '"><i class="fa-solid ' + m.ic + ' wm"></i><div class="top"><div class="av">' + esc(mdrInit_(x.name)) + '</div><div style="min-width:0;flex:1"><b style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(x.name) + '</b><small>' + (esc(x.ttype) || T('مدرب')) + ' · #' + pmNum(x.rank) + '</small></div><button class="mdr-rep" data-mdrrep="' + esc(x.id) + '" title="' + T('تقرير') + '"><i class="fa-solid fa-file-pdf"></i></button></div><div class="nums"><div><b>' + pmNum(x.progs) + '</b><small>' + T('برنامج') + '</small></div><div><b>' + pmNum(x.courses) + '</b><small>' + T('دورة') + '</small></div><div><b>' + pmNum(x.trainees) + '</b><small>' + T('متدرب') + '</small></div><div><b>' + pmNum(x.score) + '</b><small>' + T('نقطة') + '</small></div></div></div>'; }).join('');
-    return '<div class="mdr-card mdr-sec"><div class="mdr-sech"><i class="fa-solid ' + m.ic + '" style="color:#c9a15a"></i> ' + mdrBadge(tr, true) + '<span class="cnt">' + pmNum(mem.length) + ' ' + T('مدرب') + '</span></div><div class="mdr-grid">' + cards + '</div></div>';
+    var cards = mem.map(function (x) { return '<div class="mdr-m" data-mdrt="' + esc(x.id) + '"><div class="mtop">' + mdrAva_(x, 'mav') + '<div style="min-width:0;flex:1"><b>' + esc(x.name) + '</b><small>' + (esc(x.ttype) || T('مدرب')) + ' · #' + pmNum(x.rank) + '</small></div><button class="mdr-rep" data-pmtrrep1="' + esc(x.id) + '" title="' + T('تقرير') + '"><i class="fa-solid fa-file-pdf"></i></button></div><div style="margin-top:10px">' + mdrBadge(x.tier) + '</div><div class="mnums"><div><b>' + pmNum(x.progs) + '</b><small>' + T('برنامج') + '</small></div><div><b>' + pmNum(x.courses) + '</b><small>' + T('دورة') + '</small></div><div><b>' + pmNum(x.trainees) + '</b><small>' + T('متدرب') + '</small></div><div><b>' + pmNum(x.score) + '</b><small>' + T('نقطة') + '</small></div></div></div>'; }).join('');
+    return '<div class="mdr-card mdr-sec"><div class="mdr-sech"><div class="mdr-ci" style="color:' + m.rc + '"><i class="fa-solid ' + m.ic + '"></i></div> ' + mdrBadge(tr, true) + '<span class="mdr-cnt">' + pmNum(mem.length) + ' ' + T('مدرب') + '</span></div><div class="mdr-grid">' + cards + '</div></div>';
   }).join('');
-  return bar + (secs || '<div class="mdr-card"><div class="pm-mu" style="padding:12px;text-align:center">' + T('لا نتائج مطابقة.') + '</div></div>');
+  return '<div class="mdr-card" style="padding:16px 18px">' + bar + '</div>' + (secs || '<div class="mdr-empty">' + T('لا نتائج مطابقة.') + '</div>');
 }
-function mdrDetail(id) {
-  var x = mdrData().filter(function (y) { return String(y.id) === String(id); })[0]; if (!x) return;
-  var m = MDR_TIERS[x.tier], ps = pmTrProgramsFor_(x.name);
-  var plist = ps.length ? '<div class="mdr-tw"><table class="mdr-tbl"><thead><tr><th style="text-align:start">' + T('البرنامج') + '</th><th>' + T('السنة') + '</th><th>' + T('الدورات') + '</th><th>' + T('المتدربون') + '</th></tr></thead><tbody>' + ps.map(function (p) { return '<tr><td class="nm">' + esc(p.name) + '</td><td>' + esc(p.year || '—') + '</td><td>' + pmNum((p.courses || []).length) + '</td><td>' + pmNum((p.trainees || []).length) + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<p class="pm-mu">' + T('لا برامج مرتبطة بعد.') + '</p>';
-  modal('<div style="background:' + m.grad + ';color:#fff;margin:-20px -20px 14px;padding:20px;border-radius:18px 18px 0 0;display:flex;align-items:center;gap:14px"><div style="width:58px;height:58px;border-radius:50%;background:rgba(255,255,255,.22);border:2px solid rgba(255,255,255,.5);display:grid;place-items:center;font:900 22px Tajawal,sans-serif;flex:none">' + esc(mdrInit_(x.name)) + '</div><div style="flex:1"><h3 style="margin:0;color:#fff;font-size:18px">' + esc(x.name) + '</h3><div style="margin-top:5px">' + mdrBadge(x.tier, true) + ' <span style="font-weight:800;font-size:13px">#' + pmNum(x.rank) + ' · ' + pmNum(x.score) + ' ' + T('نقطة') + '</span></div></div></div>' +
-    '<div class="mdr-tiles" style="grid-template-columns:repeat(3,1fr)"><div class="mdr-tile" style="background:linear-gradient(160deg,#2f5d8f,#1d3c63)"><b>' + pmNum(x.progs) + '</b><small>' + T('برنامج') + '</small></div><div class="mdr-tile" style="background:linear-gradient(160deg,#c9871f,#9a6410)"><b>' + pmNum(x.courses) + '</b><small>' + T('دورة') + '</small></div><div class="mdr-tile" style="background:linear-gradient(160deg,#1f8a5b,#146c45)"><b>' + pmNum(x.trainees) + '</b><small>' + T('متدرب') + '</small></div></div>' +
-    ((x.qual || x.ttype) ? '<div class="mdr-note" style="margin-top:12px;gap:18px;flex-wrap:wrap">' + (x.qual ? '<span><i class="fa-solid fa-graduation-cap"></i> ' + T('المؤهل') + ': <b style="color:#13264a">' + esc(x.qual) + '</b></span>' : '') + (x.ttype ? '<span><i class="fa-solid fa-user-tag"></i> ' + T('التصنيف المهني') + ': <b style="color:#13264a">' + esc(x.ttype) + '</b></span>' : '') + '</div>' : '') +
-    '<h3 style="margin:14px 0 8px;font-size:14px;color:#13264a"><i class="fa-solid fa-folder-tree" style="color:#c9a15a"></i> ' + T('البرامج التي شارك فيها') + '</h3>' + plist +
-    '<div class="row" style="gap:8px;margin-top:14px">' + (typeof pmTrReportOne === 'function' ? '<button class="btn pri" data-mdrrep="' + esc(x.id) + '" type="button"><i class="fa-solid fa-file-pdf"></i> ' + T('تقرير المدرب PDF') + '</button>' : '') + '<button class="btn" data-close type="button">' + T('إغلاق') + '</button></div>', true);
+function mdrCoursesFor_(x) {
+  var ps = pmTrProgramsFor_(x.name), out = []; var id = String(x.id);
+  ps.forEach(function (p) { (p.courses || []).forEach(function (c) { if (String(c.trainerId || '') === id || !c.trainerId) out.push({ c: c, prog: p.name }); }); });
+  if (!out.length) ps.forEach(function (p) { (p.courses || []).forEach(function (c) { out.push({ c: c, prog: p.name }); }); });
+  return out;
+}
+function mdrProfile(pid, data) {
+  var x = data.filter(function (y) { return String(y.id) === String(pid); })[0];
+  if (!x) { MDR.pid = ''; return mdrHero(data) + '<div class="mdr-empty">' + T('لم يُعثر على المدرب.') + '</div>'; }
+  var m = MDR_TIERS[x.tier], t = x.raw || {}, ed = mdrCanEd();
+  var hero = '<div class="mdr-ph"><div class="mdr-pat"></div>' + mdrAva_(x, 'mdr-ava') +
+    '<div class="mdr-pid"><span class="mdr-plvl"><i class="fa-solid ' + m.ic + '"></i> ' + T(m.n) + ' · ' + T('الترتيب') + ' ' + pmNum(x.rank) + '</span><h1>' + esc(x.name) + '</h1>' +
+    '<div class="mdr-pmeta">' + (x.ttype ? '<span><i class="fa-solid fa-user-tag"></i> ' + T('التصنيف المهني') + ': <b>' + esc(x.ttype) + '</b></span>' : '') + (x.qual ? '<span><i class="fa-solid fa-graduation-cap"></i> ' + T('المؤهل') + ': <b>' + esc(x.qual) + '</b></span>' : '') + '<span><i class="fa-solid fa-circle-check"></i> ' + T('الحالة') + ': <b>' + esc(x.status) + '</b></span></div></div>' +
+    '<div class="mdr-gring">' + mdrRing_(data.length ? Math.round(x.score / data[0].score * 100) : 0, m.rc, 112, 10) + '<div class="c"><b>' + pmNum(x.score) + '</b><small>' + T('الدرجة الشاملة') + '</small></div></div>' +
+    '<div class="mdr-pk"><div class="k"><b>' + pmNum(x.progs) + '</b><span>' + T('برنامج') + '</span></div><div class="k"><b>' + pmNum(x.courses) + '</b><span>' + T('دورة') + '</span></div><div class="k"><b>' + pmNum(x.trainees) + '</b><span>' + T('متدرب') + '</span></div></div></div>';
+  var infoRow = function (ic, l, v) { return '<div class="r"><i class="fa-solid ' + ic + '"></i><div><span class="l">' + T(l) + '</span><span class="v">' + v + '</span></div></div>'; };
+  var gen = '<div class="mdr-card"><div class="mdr-ch"><div class="mdr-ci"><i class="fa-solid fa-address-card"></i></div> ' + T('المعلومات العامة') + '</div><div class="mdr-inf">' +
+    infoRow('fa-phone', 'الجوال', x.phone ? '<span dir="ltr">' + esc(x.phone) + '</span>' : '—') +
+    infoRow('fa-envelope', 'البريد الإلكتروني', x.email ? '<span dir="ltr">' + esc(x.email) + '</span>' : '—') +
+    infoRow('fa-location-dot', 'العنوان', esc(x.address) || '—') +
+    infoRow('fa-circle-check', 'الحالة', esc(x.status) || 'نشط') +
+    (x.cv ? infoRow('fa-file-lines', 'السيرة الذاتية', '<a href="' + esc(x.cv) + '" target="_blank" rel="noopener" style="color:#20406c;font-weight:800">' + T('فتح الملف') + '</a>') : '') +
+    '</div></div>';
+  var spec = '<div class="mdr-card"><div class="mdr-ch"><div class="mdr-ci"><i class="fa-solid fa-medal"></i></div> ' + T('المعلومات الخاصة والتصنيف') + '</div><div class="mdr-inf">' +
+    infoRow('fa-' + m.ic.replace('fa-', ''), 'المستوى الرسمي', mdrBadge(x.tier)) +
+    infoRow('fa-ranking-star', 'الترتيب العام', T('رقم') + ' ' + pmNum(x.rank) + ' · ' + T('من') + ' ' + pmNum(data.length)) +
+    infoRow('fa-star', 'الدرجة الشاملة', pmNum(x.score) + ' ' + T('نقطة')) +
+    infoRow('fa-user-tag', 'التصنيف المهني', esc(x.ttype) || '—') +
+    infoRow('fa-book', 'الدورات مع بنيان', pmNum(x.courses) + ' ' + T('دورة')) +
+    infoRow('fa-graduation-cap', 'المؤهل', esc(x.qual) || '—') +
+    '</div></div>';
+  var ps = pmTrProgramsFor_(x.name);
+  var progTbl = ps.length ? '<div class="mdr-tw"><table class="mdr-tbl"><thead><tr><th>#</th><th class="s">' + T('البرنامج') + '</th><th>' + T('السنة') + '</th><th>' + T('الدورات') + '</th><th>' + T('المتدربون') + '</th></tr></thead><tbody>' +
+    ps.map(function (p, i) { return '<tr><td class="mdr-rk">' + pmNum(i + 1) + '</td><td class="nm">' + esc(p.name) + '</td><td>' + pmNum(p.year || '—') + '</td><td>' + pmNum((p.courses || []).length) + '</td><td>' + pmNum((p.trainees || []).length) + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<p class="mdr-note">' + T('لا برامج مرتبطة بعد.') + '</p>';
+  var progCard = '<div class="mdr-card"><div class="mdr-ch"><div class="mdr-ci"><i class="fa-solid fa-folder-tree"></i></div> ' + T('البرامج التي شارك فيها') + '<span class="mdr-cnt">' + pmNum(ps.length) + ' ' + T('برنامج') + '</span></div>' + progTbl + '</div>';
+  var co = mdrCoursesFor_(x);
+  var coTbl = co.length ? '<div class="mdr-tw" style="max-height:48vh"><table class="mdr-tbl"><thead><tr><th>#</th><th class="s">' + T('الدورة') + '</th><th>' + T('البرنامج') + '</th><th>' + T('التاريخ') + '</th><th>' + T('المدينة') + '</th><th>' + T('المستهدف') + '</th><th>' + T('الحالة') + '</th></tr></thead><tbody>' +
+    co.map(function (o, i) { var c = o.c; var st = c.executed ? '<span class="mdr-badge mdr-c" style="font-size:11px">' + T('منفّذة') + '</span>' : '<span class="mdr-badge mdr-none" style="font-size:11px">' + T('مجدولة') + '</span>'; return '<tr><td class="mdr-rk">' + pmNum(i + 1) + '</td><td class="nm">' + (esc(c.name) || '—') + '</td><td>' + esc(o.prog) + '</td><td>' + (esc(c.dateHijri || c.dateStart) || '—') + '</td><td>' + (esc(c.city) || '—') + '</td><td>' + (c.target != null && c.target !== '' ? pmNum(c.target) : '—') + '</td><td>' + st + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<p class="mdr-note">' + T('لا دورات مسجّلة بعد.') + '</p>';
+  var coCard = '<div class="mdr-card"><div class="mdr-ch"><div class="mdr-ci"><i class="fa-solid fa-chalkboard"></i></div> ' + T('الدورات المقدَّمة') + '<span class="mdr-cnt">' + pmNum(x.courses) + ' ' + T('دورة') + '</span></div>' + coTbl +
+    '<div class="mdr-btns"><button type="button" class="mdr-bn pri" data-pmtrrep1="' + esc(x.id) + '"><i class="fa-solid fa-file-pdf"></i> ' + T('تقرير المدرب PDF') + '</button>' +
+    (ed ? '<button type="button" class="mdr-bn" data-pmtredit="' + esc(x.id) + '"><i class="fa-solid fa-pen"></i> ' + T('تعديل البيانات') + '</button><button type="button" class="mdr-bn del" data-pmtrdel="' + esc(x.id) + '"><i class="fa-solid fa-trash"></i> ' + T('حذف') + '</button>' : '') + '</div></div>';
+  return '<div class="mdr-back" data-mdrback="1"><i class="fa-solid fa-arrow-right"></i> ' + T('العودة إلى لوحة المدربين') + '</div>' + hero + '<div class="mdr-grid2">' + gen + spec + '</div>' + progCard + coCard;
 }
 function mdrWire() {
   var app = $('app');
-  app.querySelectorAll('[data-mdr]').forEach(function (a) { a.onclick = function () { MDR.sub = a.getAttribute('data-mdr'); tgDraw(); }; });
-  app.querySelectorAll('[data-mdrtier]').forEach(function (b) { b.onclick = function () { MDR.tier = b.getAttribute('data-mdrtier'); tgDraw(); }; });
-  app.querySelectorAll('[data-mdrt]').forEach(function (el) { el.onclick = function (e) { if (e.target.closest('[data-mdrrep]')) return; mdrDetail(el.getAttribute('data-mdrt')); }; });
-  app.querySelectorAll('[data-mdrrep]').forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); if (typeof pmTrReportOne === 'function') pmTrReportOne(b.getAttribute('data-mdrrep')); else toast(T('التقرير غير متاح.'), true); }; });
-  var q = $('mdrQ'); if (q) q.oninput = function () { MDR.q = q.value; var host = app.querySelector('.mdr-body'); if (host) { host.innerHTML = mdrRanks(mdrData()); mdrWire(); var qq = $('mdrQ'); if (qq) { qq.focus(); qq.setSelectionRange(qq.value.length, qq.value.length); } } };
+  app.querySelectorAll('[data-mdr]').forEach(function (a) { a.onclick = function () { MDR.sub = a.getAttribute('data-mdr'); MDR.pid = ''; MDR.tier = ''; tgDraw(); }; });
+  app.querySelectorAll('[data-mdrtier]').forEach(function (b) { b.onclick = function () { MDR.tier = b.getAttribute('data-mdrtier'); MDR.sub = 'ranks'; MDR.pid = ''; tgDraw(); }; });
+  app.querySelectorAll('[data-mdrback]').forEach(function (b) { b.onclick = function () { MDR.pid = ''; tgDraw(); }; });
+  app.querySelectorAll('[data-mdrt]').forEach(function (el) { el.onclick = function (e) { if (e.target.closest('[data-pmtrrep1],[data-pmtredit],[data-pmtrdel]')) return; MDR.pid = el.getAttribute('data-mdrt'); tgDraw(); window.scrollTo(0, 0); }; });
+  app.querySelectorAll('[data-pmtrrep1]').forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); if (typeof pmTrReportOne === 'function') pmTrReportOne(b.getAttribute('data-pmtrrep1')); else toast(T('التقرير غير متاح.'), true); }; });
+  app.querySelectorAll('[data-pmtradd]').forEach(function (b) { b.onclick = function () { pmTrForm(null); }; });
+  app.querySelectorAll('[data-pmtredit]').forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); pmTrForm(pmTrProg(b.getAttribute('data-pmtredit'))); }; });
+  app.querySelectorAll('[data-pmtrdel]').forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); var id = b.getAttribute('data-pmtrdel'); if (confirm(T('حذف هذا المدرب من السجل؟'))) api('pmTrDel', id).then(function () { TG.pmtr = null; MDR.pid = ''; toast(T('تم الحذف')); tgDraw(); }).catch(function (x) { toast(x.message || String(x), true); }); }; });
+  app.querySelectorAll('[data-pmtrimp]').forEach(function (b) { b.onclick = function () { if (typeof pmTrImport === 'function') pmTrImport(); }; });
+  app.querySelectorAll('[data-pmtrreport]').forEach(function (b) { b.onclick = function () { if (typeof pmTrReport === 'function') pmTrReport(); }; });
+  app.querySelectorAll('[data-pmtrcards]').forEach(function (b) { b.onclick = function () { if (typeof pmTrCards === 'function') pmTrCards(); }; });
+  app.querySelectorAll('[data-pmtrcert]').forEach(function (b) { b.onclick = function () { if (typeof pmTrCertPick === 'function') pmTrCertPick(); }; });
+  app.querySelectorAll('[data-pmtrstats]').forEach(function (b) { b.onclick = function () { if (typeof pmTrStats === 'function') pmTrStats(); }; });
+  var q = $('mdrQ'); if (q) q.oninput = function () { MDR.q = q.value; var host = app.querySelector('.mdr-body'); if (host) { var data = mdrData(); host.innerHTML = mdrHero(data) + mdrTabs(data) + mdrRanks(data); mdrWire(); var qq = $('mdrQ'); if (qq) { qq.focus(); qq.setSelectionRange(qq.value.length, qq.value.length); } } };
 }
 function pmNotesView() {
   if (!TG.pmn) { pmNotesLoad(); return '<div class="tgload"><div class="tgspin"></div><b>' + T('جارٍ تحميل الملاحظات…') + '</b></div>'; }

@@ -5164,7 +5164,7 @@ const SITE_KINDS_ = ['menu', 'slide', 'section', 'news', 'image', 'album', 'vide
 const SITE_PRIVATE_ = ['prvisit', 'prevent', 'prpartner'];
 const SITE_CFG_ = ['design', 'fonts', 'style', 'seo', 'edits', 'layout', 'track', 'settings', 'occasion', 'hero'];
 /* التعديل لمدير النظام ومن مُنح صلاحية «تعديل الموقع الإلكتروني»؛ والاطلاع للإدارة العليا أيضاً */
-function siteCanEdit_(me) { return me.role === 'sysadmin' || !!(me.perms && me.perms.site_edit); }
+function siteCanEdit_(me) { return me.role === 'sysadmin' || trTeam_(me) || !!(me.perms && me.perms.site_edit); }
 function siteEditor_(token) { const me = auth_(token); if (!siteCanEdit_(me)) throw new Error('التعديل على الموقع الإلكتروني لمدير النظام ومن يملك صلاحية «تعديل الموقع الإلكتروني» فقط.'); return me; }
 function siteViewer_(token) { const me = auth_(token); if (!siteCanEdit_(me) && !me.head) throw new Error('الموقع الإلكتروني للإدارة العليا ومدير النظام فقط.'); return me; }
 function siteJ_(x, d) { try { return x ? JSON.parse(x) : d; } catch (e) { return d; } }
